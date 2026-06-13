@@ -1,0 +1,88 @@
+/* Custom brutalist dropdown — dark glass variant */
+
+.brutal-select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.brutal-select__label {
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.brutal-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--text-glass);
+  padding: 0.7rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 2px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.brutal-select__trigger:hover {
+  border-color: rgba(57, 255, 106, 0.5);
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.brutal-select__value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brutal-select__value.is-placeholder { color: var(--text-glass-dim); font-weight: 500; }
+
+.brutal-select__arrow {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  transition: transform 180ms var(--ease-out-soft);
+}
+.brutal-select__arrow.is-open { transform: rotate(180deg); }
+
+.brutal-select__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  list-style: none;
+  max-height: 230px;
+  overflow-y: auto;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-glass);
+  border-radius: 2px;
+}
+
+.brutal-select__option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-glass);
+  transition: background 100ms ease, color 100ms ease;
+}
+.brutal-select__option:hover { background: rgba(57, 255, 106, 0.16); }
+.brutal-select__option.is-selected {
+  background: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 700;
+}

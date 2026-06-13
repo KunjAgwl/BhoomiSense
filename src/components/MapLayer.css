@@ -1,0 +1,83 @@
+/* Map layer (Section 4, reworked) — revealed by the scroll dive */
+
+.map-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-map);
+  transform-origin: center center;
+  will-change: opacity, transform;
+  /* initial: hidden behind the cinematic; ScrollHeroSection drives these */
+  opacity: 0;
+  transform: scale(1.12);
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Subtle vignette + cool tint so glass UI reads as floating over imagery */
+.map-tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 400;
+  background:
+    radial-gradient(130% 100% at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.45) 100%),
+    linear-gradient(180deg, rgba(6, 14, 9, 0.18), rgba(6, 14, 9, 0.05) 30%, rgba(6, 14, 9, 0.22));
+}
+
+/* ---- Target pin ---- */
+.target-pin {
+  position: relative;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+  animation: pin-drop 0.4s var(--ease-out-soft);
+}
+.target-pin__pulse {
+  position: absolute;
+  left: 50%;
+  top: 15px;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(57, 255, 106, 0.45);
+  animation: pin-pulse 1.8s ease-out infinite;
+}
+@keyframes pin-pulse {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(4.5); opacity: 0; }
+}
+@keyframes pin-drop {
+  0%   { transform: translateY(-40px) scale(0.6); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ---- Hint ---- */
+.map-hint {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-ui);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1rem;
+  border-radius: 2px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--color-primary);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .map-hint {
+    top: 14px;
+    font-size: 0.64rem;
+    padding: 0.5rem 0.75rem;
+  }
+}

@@ -1,0 +1,224 @@
+/* Sub-components A–E (Section 6.2) — liquid glass dark theme */
+
+/* ===== A. Critical Alerts ===== */
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border: 1px solid var(--glass-border);
+  border-radius: 2px;
+  padding: 0.85rem 0.9rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.alert--high {
+  background: rgba(255, 59, 59, 0.86);
+  color: #fff;
+  border-color: rgba(255, 120, 120, 0.6);
+  animation: alert-pulse 2s ease-in-out infinite;
+}
+.alert--medium {
+  background: rgba(255, 184, 0, 0.9);
+  color: #1a1206;
+  border-color: rgba(255, 210, 90, 0.7);
+}
+.alert__icon { flex-shrink: 0; line-height: 1; }
+.alert__content { display: flex; flex-direction: column; gap: 0.25rem; }
+.alert__type {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  opacity: 0.9;
+  font-weight: 700;
+}
+.alert__message { font-size: 0.95rem; font-weight: 600; line-height: 1.35; }
+
+/* ===== B. Action Timeline ===== */
+.timeline__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.timeline__card {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 2px;
+  padding: 0.85rem 0.9rem;
+  transition: opacity 180ms ease, border-color 180ms ease;
+}
+.timeline__card.is-done { opacity: 0.5; }
+.timeline__card.is-done .timeline__action { text-decoration: line-through; }
+.timeline__check {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-primary);
+  background: rgba(0, 0, 0, 0.3);
+  display: grid;
+  place-items: center;
+  color: var(--color-text);
+  border-radius: 3px;
+  transition: background 140ms ease;
+}
+.timeline__check.is-checked { background: var(--color-primary); }
+.timeline__body { flex: 1; min-width: 0; }
+.timeline__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+.timeline__day {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-primary);
+}
+.timeline__glyph { color: var(--text-glass); line-height: 1; }
+.timeline__action {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+  color: var(--text-glass);
+}
+.timeline__detail { font-size: 0.85rem; color: var(--text-glass-dim); line-height: 1.4; }
+
+/* ===== C. Resource & Mandi Tracker ===== */
+.tracker__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.tracker__card {
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-radius: 2px;
+}
+.tracker__card-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.tracker__savings { display: flex; flex-direction: column; gap: 0.65rem; }
+.tracker__stat { display: flex; flex-direction: column; gap: 0.15rem; }
+.tracker__stat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-glass-dim);
+}
+.tracker__big {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-success);
+}
+.tracker__unit { font-size: 0.95rem; }
+.tracker__sub { font-size: 0.7rem; color: var(--text-glass-dim); }
+.tracker__crop { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-glass); }
+.tracker__price-row { display: flex; align-items: center; gap: 0.45rem; }
+.tracker__price {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--text-glass);
+}
+.tracker__trend { display: flex; line-height: 1; }
+.tracker__trend.is-up { color: var(--color-success); }
+.tracker__trend.is-down { color: var(--color-danger); }
+.tracker__price-unit { font-size: 0.66rem; color: var(--text-glass-dim); letter-spacing: 0.05em; }
+.tracker__spark {
+  margin-top: 0.3rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 0.4rem;
+}
+
+/* ===== D. Data Chips ===== */
+.chips__row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-soft);
+  background: var(--glass-fill);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.5rem 0.75rem;
+  box-shadow: var(--shadow-glass);
+}
+.chip__icon { color: var(--color-primary); line-height: 1; }
+.chip__label { font-size: 0.76rem; font-weight: 600; color: var(--text-glass-dim); }
+.chip__value { font-size: 0.95rem; font-weight: 700; color: var(--text-glass); }
+.chip__value.is-low { color: var(--color-danger); font-weight: 900; }
+.chip--flash { animation: chip-flash 1s infinite alternate; }
+
+/* ===== E. Accessibility Bar ===== */
+.access-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.4);
+}
+.access-bar__lang {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+.access-bar__lang-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.access-bar__select {
+  width: 100%;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text-glass);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 2px;
+}
+.access-bar__select option { background: #0a140d; color: var(--text-glass); }
+.access-bar__note {
+  font-size: 0.62rem;
+  line-height: 1.25;
+  color: var(--color-warning);
+  margin-top: 0.1rem;
+}
+.access-bar__read { flex-shrink: 0; padding: 0.7rem 1rem; }
+.access-bar__read.is-speaking {
+  animation: alert-pulse 1.2s ease-in-out infinite;
+  background: var(--color-accent);
+}
+
+@media (max-width: 640px) {
+  .tracker__grid { grid-template-columns: 1fr; }
+  .chips__row { display: grid; grid-template-columns: 1fr 1fr; }
+}

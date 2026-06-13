@@ -1,0 +1,279 @@
+/* ============================================================
+   BHOOMI SENSE — Neo-Brutalist Green × Liquid Glass
+   Design system. Sharp brutalist frames, liquid-glass interiors
+   floating over live satellite imagery.
+   ============================================================ */
+
+:root {
+  /* ---- Core palette ---- */
+  --color-bg: #F5F5F0;
+  --color-bg-dark: #060A06;     /* deeper near-black for space/map base */
+  --color-text: #0D0D0D;
+  --color-primary: #39FF6A;     /* acid/lime green */
+  --color-primary-deep: #1B3A2B;
+  --color-accent: #FF6B35;
+  --color-danger: #FF3B3B;
+  --color-warning: #FFB800;
+  --color-success: #2ECC71;
+  --color-border: #0D0D0D;
+
+  /* ---- Liquid glass (UI over satellite imagery) ---- */
+  --glass-fill: rgba(10, 18, 12, 0.46);
+  --glass-fill-strong: rgba(8, 14, 10, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.24);
+  --glass-blur: blur(22px) saturate(150%);
+  --text-glass: #EAF2EA;
+  --text-glass-dim: rgba(234, 242, 234, 0.60);
+  --shadow-glass: 6px 6px 0 rgba(0, 0, 0, 0.42);
+
+  /* ---- Type ---- */
+  --font-display: 'Archivo Black', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+
+  /* ---- Brutalist tokens ---- */
+  --radius-soft: 4px;
+  --border-brutal: 3px solid var(--color-border);
+  --shadow-brutal: 6px 6px 0px var(--color-border);
+  --shadow-brutal-pressed: 4px 4px 0px var(--color-border);
+
+  /* ---- Easing (Apple-like) ---- */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --z-map: 1;
+  --z-hero: 500;       /* between the map and the floating UI */
+  --z-ui: 1000;
+  --z-dashboard: 1100;
+  --z-overlay: 2000;
+}
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--color-bg-dark);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Lenis smooth-scroll baseline */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+a { color: inherit; }
+
+svg { display: block; }
+
+/* ============================================================
+   Brutalist utilities
+   ============================================================ */
+.brutal-card {
+  border: var(--border-brutal);
+  box-shadow: var(--shadow-brutal);
+  background: var(--color-bg);
+}
+
+/* Primary brutalist button (neon, hard shadow) */
+.btn-brutal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 3px solid var(--color-border);
+  box-shadow: var(--shadow-brutal);
+  background: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.85rem 1.25rem;
+  font-size: 1rem;
+  transition: transform 140ms var(--ease-out-soft), box-shadow 140ms var(--ease-out-soft),
+    background 140ms ease;
+  user-select: none;
+}
+.btn-brutal:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-brutal-pressed);
+}
+.btn-brutal:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 2px 2px 0px var(--color-border);
+}
+.btn-brutal:disabled {
+  background: rgba(120, 130, 120, 0.35);
+  color: rgba(234, 242, 234, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Liquid glass — frosted panels over satellite imagery
+   Sharp brutalist frame, liquid interior, specular sheen.
+   ============================================================ */
+.liquid {
+  position: relative;
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass), inset 0 1px 0 var(--glass-highlight);
+  color: var(--text-glass);
+  overflow: hidden;
+}
+.liquid-strong {
+  background: var(--glass-fill-strong);
+}
+/* Specular top sheen */
+.liquid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.02) 22%,
+    rgba(255, 255, 255, 0) 45%
+  );
+  z-index: 0;
+}
+.liquid > * { position: relative; z-index: 1; }
+
+/* Hard brutalist frame variant for glass (neon edge accents) */
+.liquid--framed {
+  border: 3px solid var(--color-border);
+  box-shadow: var(--shadow-glass), inset 0 0 0 1px rgba(57, 255, 106, 0.18),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.mono { font-family: var(--font-mono); }
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes brutal-spin {
+  0%   { transform: rotate(0deg)   scale(1);   }
+  50%  { transform: rotate(180deg) scale(0.7); }
+  100% { transform: rotate(360deg) scale(1);   }
+}
+.brutal-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid currentColor;
+  background: transparent;
+  animation: brutal-spin 0.9s steps(8, end) infinite;
+}
+
+@keyframes alert-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes chip-flash {
+  from { box-shadow: var(--shadow-glass), inset 0 0 0 2px rgba(255, 59, 59, 0); }
+  to   { box-shadow: var(--shadow-glass), inset 0 0 0 2px rgba(255, 59, 59, 0.9); }
+}
+
+@keyframes panel-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-6px); }
+  80%      { transform: translateX(6px); }
+}
+.shake { animation: panel-shake 0.4s ease; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 106, 0.4);
+  border-radius: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================
+   Leaflet theming
+   ============================================================ */
+/* Floating UI gate — fully out of the paint path during the cinematic so the
+   panels' backdrop-filter never composites mid-scroll (kills jitter). */
+.app-ui {
+  opacity: 0;
+  visibility: hidden; /* instant hide on scroll-up — keeps backdrop-filter out of the cinematic */
+  pointer-events: none;
+  transition: opacity 700ms var(--ease-out-soft);
+}
+.app-ui--revealed {
+  opacity: 1;
+  visibility: visible; /* shown immediately, then opacity fades in smoothly */
+  pointer-events: auto;
+}
+
+.leaflet-container {
+  background: #060A06;
+  font-family: var(--font-mono);
+}
+.leaflet-control-attribution {
+  background: rgba(6, 10, 6, 0.65) !important;
+  color: rgba(234, 242, 234, 0.5) !important;
+  backdrop-filter: blur(6px);
+}
+.leaflet-control-attribution a { color: rgba(57, 255, 106, 0.7) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

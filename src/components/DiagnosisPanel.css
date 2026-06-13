@@ -1,0 +1,157 @@
+/* Leaf Photo Diagnosis modal */
+
+.diag-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+.diag-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.diag {
+  position: relative;
+  width: 440px;
+  max-width: 100%;
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
+  color: var(--text-glass);
+  border-radius: 3px;
+}
+
+.diag__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.35);
+}
+.diag__kicker { font-size: 0.62rem; letter-spacing: 0.26em; color: var(--color-primary); }
+.diag__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.7rem;
+  margin-top: 0.15rem;
+  color: var(--text-glass);
+}
+.diag__title .icon { color: var(--color-primary); }
+.diag__close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-glass);
+  border-radius: 2px;
+}
+.diag__close:hover { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
+
+.diag__body {
+  padding: 1.1rem 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.diag__drop {
+  display: block;
+  width: 100%;
+  border: 2px dashed var(--glass-border);
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 3px;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 140ms ease;
+}
+.diag__drop:hover { border-color: rgba(57, 255, 106, 0.5); }
+.diag__drop.has-image { border-style: solid; }
+.diag__drop-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 2.4rem 1rem;
+  color: var(--text-glass-dim);
+}
+.diag__drop-inner .icon { color: var(--color-primary); }
+.diag__drop-text { font-size: 0.95rem; font-weight: 600; color: var(--text-glass); }
+.diag__drop-sub { font-size: 0.66rem; letter-spacing: 0.08em; }
+.diag__preview { display: block; width: 100%; height: 220px; object-fit: cover; }
+
+.diag__analyze { width: 100%; }
+.diag__analyze .brutal-spinner { color: var(--color-text); }
+
+/* ---- Result ---- */
+.diag__result { display: flex; flex-direction: column; gap: 0.8rem; }
+.diag__verdict {
+  border: 1px solid var(--glass-border);
+  border-left-width: 5px;
+  border-radius: 2px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(0, 0, 0, 0.3);
+}
+.diag__verdict--ok { border-left-color: var(--color-success); }
+.diag__verdict--mild { border-left-color: var(--color-warning); }
+.diag__verdict--moderate { border-left-color: var(--color-accent); }
+.diag__verdict--severe { border-left-color: var(--color-danger); }
+.diag__verdict-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.diag__disease { font-family: var(--font-display); font-size: 1.25rem; color: var(--text-glass); }
+.diag__sev { font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-glass-dim); }
+.diag__badges { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.diag__badge {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-soft);
+  color: var(--color-primary);
+}
+
+.diag__row { display: flex; gap: 0.7rem; align-items: flex-start; }
+.diag__row-icon { color: var(--color-primary); flex-shrink: 0; margin-top: 1px; }
+.diag__row-label {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--text-glass-dim);
+  margin-bottom: 0.15rem;
+}
+.diag__row-text { font-size: 0.92rem; line-height: 1.45; color: var(--text-glass); }
+
+.diag__again {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-glass);
+  padding: 0.5rem 0.8rem;
+  border-radius: 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.diag__again:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+@media (max-width: 640px) {
+  .diag { width: 100%; }
+  .diag__preview { height: 180px; }
+}
