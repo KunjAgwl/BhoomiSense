@@ -17,14 +17,14 @@
   transition: left 0.55s cubic-bezier(0.16,1,0.3,1);
 }
 
-/* When advisory panel open: pod moves to right half of screen */
+/* When advisory panel open: pod moves to right of 420px panel */
 .command-pod--split {
-  left: calc(50vw + 24px);
+  left: calc(420px + 24px);
 }
 
 /* When the advisory panel is open, move command pod to the right map half */
 .app-ui--split .command-pod {
-  left: calc(50vw + 24px);
+  left: calc(420px + 24px);
 }
 
 /* ── Header ──────────────────────────────────────── */

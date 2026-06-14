@@ -313,6 +313,173 @@ app.post('/api/diagnose-image', async (req, res) => {
     }
 });
 
+// ============================================================
+// CROP CALENDAR — AI-generated 180-day season planner
+// ============================================================
+app.post('/api/crop-calendar', async (req, res) => {
+    try {
+        const { lat, lon, crop, state, currentDate } = req.body;
+        if (!lat || !lon || !crop || !state) {
+            return res.status(400).json({ error: 'Missing lat, lon, crop, state' });
+        }
+
+        const startDate = currentDate || new Date().toISOString().split('T')[0];
+
+        // 1. Fetch historical monthly climate from NASA POWER
+        let monthlyRainfall = {};
+        let monthlyTemp = {};
+        try {
+            const nasaUrl = `https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=PRECTOTCORR,T2M,RH2M&community=AG&longitude=${lon}&latitude=${lat}&start=2023&end=2023&format=JSON`;
+            const nasaRes = await fetch(nasaUrl);
+            if (nasaRes.ok) {
+                const nasaData = await nasaRes.json();
+                const params = nasaData?.properties?.parameter || {};
+                monthlyRainfall = params.PRECTOTCORR || {};
+                monthlyTemp     = params.T2M         || {};
+            }
+        } catch (e) {
+            console.warn('[crop-calendar] NASA POWER monthly fetch failed, using defaults');
+        }
+
+        // Format monthly data as readable strings for the prompt
+        const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const rainfallStr = MONTHS.map((m, i) => {
+            const key = `2023${String(i+1).padStart(2,'0')}`;
+            return `${m}:${(monthlyRainfall[key] || 0).toFixed(0)}mm`;
+        }).join(', ');
+        const tempStr = MONTHS.map((m, i) => {
+            const key = `2023${String(i+1).padStart(2,'0')}`;
+            return `${m}:${(monthlyTemp[key] || 25).toFixed(1)}°C`;
+        }).join(', ');
+
+        // 2. Generate calendar via AI
+        const calendarPrompt = `You are an expert agronomist for India. Generate a complete 180-day crop calendar for ${crop} cultivation in ${state}, India.
+Starting date: ${startDate}
+Historical monthly rainfall at this location: ${rainfallStr}
+Historical monthly temperature: ${tempStr}
+
+Return ONLY a valid JSON array with NO extra text, NO markdown, NO backticks.
+Each item:
+{"day":<1-180>,"date":"<DD MMM>","activity":"<max 4 words>","type":"<sow|irrigate|fertilize|spray|inspect|harvest|prepare>","description":"<one practical sentence>","urgency":"<critical|important|routine>","icon":"<emoji>"}
+Include 28-35 events. Make activities specific to ${crop} in ${state}. Align irrigation with rainfall gaps. Mark harvest as type 'harvest'.`;
+
+        const calRes = await openai.chat.completions.create({
+            model: AI_MODEL,
+            messages: [{ role: 'user', content: calendarPrompt }],
+            max_tokens: 3000,
+            temperature: 0.3,
+        });
+
+        let calendar = [];
+        try {
+            const raw = calRes.choices[0].message.content;
+            const cleaned = raw.replace(/```json|```/g, '').trim();
+            calendar = JSON.parse(cleaned);
+        } catch (e) {
+            console.error('[crop-calendar] JSON parse failed:', e.message);
+            calendar = [];
+        }
+
+        // 3. Season summary
+        const summaryRes = await openai.chat.completions.create({
+            model: AI_MODEL,
+            messages: [{
+                role: 'user',
+                content: `In 2 sentences, summarise the key milestones and risks for growing ${crop} in ${state} this season. Rainfall context: ${rainfallStr}. Be specific and practical.`
+            }],
+            max_tokens: 120,
+            temperature: 0.4,
+        });
+        const summary = summaryRes.choices[0].message.content.trim();
+
+        res.json({ calendar, summary, crop, state, totalDays: 180, startDate });
+    } catch (err) {
+        console.error('[crop-calendar] error:', err);
+        res.status(500).json({ error: 'Failed to generate crop calendar.' });
+    }
+});
+
+// ============================================================
+// YIELD PREDICTION ENGINE
+// ============================================================
+const CROP_DATA = {
+  wheat:     { avgYield: 3.2,  msp: 2275, unit: 'tons/ha', season: 'Rabi'   },
+  rice:      { avgYield: 2.7,  msp: 2183, unit: 'tons/ha', season: 'Kharif' },
+  maize:     { avgYield: 2.9,  msp: 1962, unit: 'tons/ha', season: 'Kharif' },
+  cotton:    { avgYield: 1.8,  msp: 6620, unit: 'tons/ha', season: 'Kharif' },
+  soybean:   { avgYield: 1.2,  msp: 4600, unit: 'tons/ha', season: 'Kharif' },
+  sugarcane: { avgYield: 70.0, msp: 315,  unit: 'tons/ha', season: 'Annual' },
+  potato:    { avgYield: 20.0, msp: 890,  unit: 'tons/ha', season: 'Rabi'   },
+  default:   { avgYield: 2.5,  msp: 2000, unit: 'tons/ha', season: 'Kharif' },
+};
+
+app.post('/api/yield-prediction', async (req, res) => {
+  try {
+    const { crop, ndviMean, soilMoisture, rainfall7day, temp } = req.body;
+    if (!crop) return res.status(400).json({ error: 'Missing crop' });
+
+    const cropBase = CROP_DATA[crop.toLowerCase()] || CROP_DATA.default;
+
+    const ndviFactor     = Math.min(2.0, (ndviMean || 0.5) / 0.65);
+    const moistureFactor = Math.min(2.0, (soilMoisture || 35) / 38);
+    const rainFactor     = Math.min(2.0, Math.max(0.3, (rainfall7day || 10) / 12));
+    const t              = temp || 25;
+    const tempFactor     = (t >= 15 && t <= 32)
+      ? 1.0 + (1 - Math.abs(t - 23.5) / 8.5) * 0.3
+      : 0.6;
+
+    const compositeScore  = ndviFactor*0.35 + moistureFactor*0.30 + rainFactor*0.20 + tempFactor*0.15;
+    const predictedYield  = parseFloat((cropBase.avgYield * compositeScore).toFixed(2));
+    const yieldVsAvg      = parseFloat((((predictedYield - cropBase.avgYield) / cropBase.avgYield) * 100).toFixed(1));
+    const confidence      = Math.min(92, Math.max(55, Math.round(65 + ndviFactor*10 + moistureFactor*8)));
+    const revenueEstimate = Math.round(predictedYield * 10 * cropBase.msp);
+
+    const prompt = `You are an agricultural scientist. Given this data for a ${crop} field in India:
+- NDVI (crop health): ${ndviMean} (healthy baseline: 0.65)
+- Soil moisture: ${soilMoisture}% (optimal: 35-40%)
+- 7-day rainfall: ${rainfall7day}mm (optimal: 10-15mm)
+- Temperature: ${t}°C (optimal: 18-28°C)
+- Predicted yield: ${predictedYield} ${cropBase.unit} vs national average ${cropBase.avgYield}
+
+Write exactly 3 sentences:
+1. The most limiting factor right now and what it means for yield
+2. One specific action to improve yield in the next 7 days
+3. Realistic expectation for this harvest
+
+Be direct and specific. No fluff. Speak to the farmer.`;
+
+    const aiRes = await openai.chat.completions.create({
+      model: AI_MODEL,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 180,
+      temperature: 0.4,
+    });
+    const explanation = aiRes.choices[0].message.content.trim();
+
+    res.json({
+      predictedYield,
+      yieldVsAvg,
+      confidence,
+      nationalAvg: cropBase.avgYield,
+      msp: cropBase.msp,
+      revenueEstimate,
+      season: cropBase.season,
+      unit: cropBase.unit,
+      factors: {
+        ndvi:        { score: ndviFactor,     label: 'Crop Health',  value: ndviMean      },
+        moisture:    { score: moistureFactor, label: 'Soil Moisture', value: soilMoisture },
+        rainfall:    { score: rainFactor,     label: 'Rainfall',     value: rainfall7day  },
+        temperature: { score: tempFactor,     label: 'Temperature',  value: t             },
+      },
+      explanation,
+      crop,
+    });
+  } catch (err) {
+    console.error('[yield-prediction]', err);
+    res.status(500).json({ error: 'Yield prediction failed.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

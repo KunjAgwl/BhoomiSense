@@ -17,6 +17,16 @@
   --color-success: #2ECC71;
   --color-border: #0D0D0D;
   --color-signal: #4ADE80;   /* alias used by components */
+  --color-sky:    #38BDF8;
+  --color-warn:   #F59E0B;
+  --color-gold:   #C9A84C;
+  --color-void:   #030604;
+  --color-ground: #0A1512;
+
+  /* Dim backgrounds for alert/warn/signal */
+  --color-danger-dim: rgba(255,59,59,0.1);
+  --color-warn-dim:   rgba(245,158,11,0.1);
+  --color-signal-dim: rgba(74,222,128,0.1);
 
   /* ---- Page backgrounds ---- */
   --bg-dark: #060A06;        /* alias for --color-bg-dark */
@@ -28,6 +38,7 @@
   --space-5: 1.25rem;
 
   /* ---- Border radii ---- */
+  --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 20px;
   --radius-pill: 999px;

@@ -1,0 +1,291 @@
+/* ============================================================
+   YIELD PAGE — Mission Control Prediction Screen
+   ============================================================ */
+
+.yield-page {
+  min-height: 100vh;
+  padding-top: 60px;
+  background: #030604;
+  color: #eaf2ea;
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Empty / Loading ──────────────────────────────────── */
+.yield-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 2rem;
+}
+.yield-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 440px;
+}
+.yield-empty-inner h2 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: #fff;
+}
+.yield-empty-inner p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+}
+.yield-go-btn {
+  padding: 10px 24px;
+  background: #4ADE80;
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: box-shadow 150ms;
+}
+.yield-go-btn:hover { box-shadow: 0 0 24px rgba(74,222,128,0.4); }
+.yield-spinner {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(74,222,128,0.15);
+  border-top-color: #4ADE80;
+  animation: yspin 0.9s linear infinite;
+}
+@keyframes yspin { to { transform: rotate(360deg); } }
+
+/* ── Two-column body ──────────────────────────────────── */
+.yield-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ── LEFT: Hero ───────────────────────────────────────── */
+.yield-left {
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.yield-overline {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.3);
+}
+
+.yield-number-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.yield-number {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 9vw, 7rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #4ADE80;
+  text-shadow: 0 0 60px rgba(74,222,128,0.25);
+}
+.yield-unit {
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.3);
+}
+
+/* Comparison row */
+.yield-comparison {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.comparison-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.comp-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #E2EDE8;
+}
+.comp-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.3);
+}
+.comparison-delta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid;
+}
+.comparison-delta.positive {
+  color: #4ADE80;
+  background: rgba(74,222,128,0.08);
+  border-color: rgba(74,222,128,0.25);
+}
+.comparison-delta.negative {
+  color: #F43F5E;
+  background: rgba(244,63,94,0.08);
+  border-color: rgba(244,63,94,0.25);
+}
+.delta-arrow { font-size: 1rem; }
+.delta-pct {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.delta-sub {
+  font-size: 0.62rem;
+  opacity: 0.6;
+}
+
+/* AI explanation */
+.yield-explanation {
+  max-width: 480px;
+}
+.yield-explanation p {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ── RIGHT: Factors ───────────────────────────────────── */
+.yield-right {
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+}
+
+.factor-row { margin-bottom: 26px; }
+.factor-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.factor-label {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.7);
+  flex: 1;
+}
+.factor-value {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.4);
+}
+.factor-score {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+}
+.score-poor      { background: rgba(244,63,94,0.15);  color: #F43F5E; }
+.score-below     { background: rgba(245,158,11,0.15); color: #F59E0B; }
+.score-good,
+.score-excellent { background: rgba(74,222,128,0.12); color: #4ADE80; }
+
+.factor-bar {
+  display: flex;
+  gap: 4px;
+}
+.factor-segment {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  transition: background 400ms ease;
+}
+
+/* What-if */
+.whatif-section {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.whatif-desc {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.4);
+  margin: 6px 0 14px;
+}
+.whatif-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.whatif-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+  cursor: pointer;
+}
+.whatif-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #4ADE80;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(74,222,128,0.5);
+}
+.whatif-result {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+}
+.whatif-result .positive { color: #4ADE80; }
+.whatif-result .negative { color: #F43F5E; }
+
+/* ── MSP card ─────────────────────────────────────────── */
+.msp-card {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.msp-col {
+  flex: 1;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.msp-col .label { font-size: 0.6rem; letter-spacing: 0.16em; color: rgba(255,255,255,0.3); }
+.msp-col strong { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: #E2EDE8; }
+.msp-col span:last-child { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+.text-gold { color: #C9A84C !important; }
+.msp-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .yield-body { grid-template-columns: 1fr; }
+  .yield-left, .yield-right { padding: 28px 24px; }
+  .msp-card { flex-direction: column; }
+  .msp-divider { width: 100%; height: 1px; }
+}

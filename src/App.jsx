@@ -8,6 +8,8 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import CropDoctorPage from './pages/CropDoctorPage';
 import MarketPage from './pages/MarketPage';
 import AboutPage from './pages/AboutPage';
+import PlannerPage from './pages/PlannerPage';
+import YieldPage from './pages/YieldPage';
 
 export default function App() {
   useLenis();
@@ -15,13 +17,6 @@ export default function App() {
   return (
     <>
       <GlobalNav />
-      {/*
-        MapLayer lives here — permanently in the DOM, never unmounted.
-        Opacity/visibility is driven by the 'revealed' store flag and
-        direct style writes from ScrollHeroSection / DashboardPage.
-        Removing it from the DOM (conditional render or display:none toggle)
-        causes Leaflet's removeChild crash.
-      */}
       <MapLayer />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -30,6 +25,8 @@ export default function App() {
         <Route path="/crop-doctor" element={<CropDoctorPage />} />
         <Route path="/market" element={<MarketPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/planner" element={<PlannerPage />} />
+        <Route path="/yield" element={<YieldPage />} />
       </Routes>
     </>
   );

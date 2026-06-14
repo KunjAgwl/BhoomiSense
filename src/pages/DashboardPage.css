@@ -1,0 +1,14 @@
+/* DashboardPage shell — no layout needed here;
+   the map is position:fixed behind everything,
+   the advisory panel is position:fixed on the left,
+   the command pod floats via ActionPanel.css.
+   This file just ensures the page has correct height. */
+.dashboard-shell {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none; /* let map clicks through */
+}
+.dashboard-shell * {
+  pointer-events: auto;
+}

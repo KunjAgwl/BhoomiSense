@@ -6,11 +6,13 @@ export default function GlobalNav() {
   const isLanding = location.pathname === '/';
 
   const navLinks = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Analytics', path: '/analytics' },
+    { name: 'Dashboard',   path: '/dashboard'   },
+    { name: 'Planner',     path: '/planner'     },
+    { name: 'Analytics',   path: '/analytics'   },
+    { name: 'Yield',       path: '/yield'       },
     { name: 'Crop Doctor', path: '/crop-doctor' },
-    { name: 'Market', path: '/market' },
-    { name: 'About', path: '/about' },
+    { name: 'Market',      path: '/market'      },
+    { name: 'About',       path: '/about'       },
   ];
 
   return (

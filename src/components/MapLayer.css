@@ -14,10 +14,10 @@
               width 0.55s cubic-bezier(0.16,1,0.3,1);
 }
 
-/* When advisory panel is open — map lives on the right half */
+/* When advisory panel is open — map shifts right, fills remaining width */
 .map-layer--split {
-  left: 50vw;
-  width: 50vw;
+  left: 420px;
+  width: calc(100vw - 420px);
   opacity: 1 !important;
   transform: scale(1) !important;
 }
