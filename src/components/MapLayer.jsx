@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Rectangle, Polygon, FeatureGroup, useMap, Tooltip } from 'react-leaflet';
-import { useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import { EditControl } from 'react-leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -57,10 +56,30 @@ function DrawControl() {
   const setPinLocation = useStore((s) => s.setPinLocation);
   const setFieldPolygon = useStore((s) => s.setFieldPolygon);
   const revealed = useStore((s) => s.revealed);
+  const fgRef = useRef(null);
+
+  // Hide the draw toolbar natively instead of unmounting the FeatureGroup.
+  // Unmounting the FeatureGroup crashes react-leaflet when toggled rapidly.
+  useEffect(() => {
+    const el = document.querySelector('.leaflet-draw');
+    if (el) {
+      el.style.display = revealed ? 'block' : 'none';
+    }
+  }, [revealed]);
 
   const onCreated = (e) => {
     const { layerType, layer } = e;
-    layer._map.removeLayer(layer); // remove native draw layer, we'll declaratively render it
+    
+    // Safely remove the layer from the FeatureGroup on the next tick
+    // This prevents the 'removeChild' crash by letting Leaflet Draw finish its internal event loop first
+    setTimeout(() => {
+      if (fgRef.current && fgRef.current.hasLayer(layer)) {
+        fgRef.current.removeLayer(layer);
+      } else if (layer && layer._map) {
+        layer._map.removeLayer(layer);
+      }
+    }, 10);
+    
     if (layerType === 'polygon') {
       const latlngs = layer.getLatLngs()[0];
       const centroid = layer.getBounds().getCenter();
@@ -73,10 +92,8 @@ function DrawControl() {
     }
   };
 
-  if (!revealed) return null;
-
   return (
-    <FeatureGroup>
+    <FeatureGroup ref={fgRef}>
       <EditControl
         position="topleft"
         onCreated={onCreated}
@@ -140,15 +157,12 @@ function NdviFitter({ bounds }) {
   return null;
 }
 
-// Fly to the pin when first dropped, so the satellite imagery zooms to the plot.
+// Jump to the pin instantly when dropped.
 function PinFlyer({ pin }) {
   const map = useMap();
   useEffect(() => {
     if (!pin) return;
-    map.flyTo([pin.lat, pin.lon], Math.max(map.getZoom(), 15), {
-      duration: 1.6,
-      easeLinearity: 0.25,
-    });
+    map.setView([pin.lat, pin.lon], Math.max(map.getZoom(), 15), { animate: false });
   }, [map, pin]);
   return null;
 }
@@ -215,9 +229,6 @@ function NdviGrid({ grid, fieldPolygon }) {
 
   return (
     <>
-      <style>
-        {cells.map(c => `.${c.key} { animation: ndvi-fade 0.5s ease-out ${c.delay}ms forwards; opacity: 0; }`).join('\n')}
-      </style>
       {cells.map((cell) => (
         <Rectangle
           key={cell.key}
@@ -231,6 +242,30 @@ function NdviGrid({ grid, fieldPolygon }) {
         </Rectangle>
       ))}
     </>
+  );
+}
+
+function NdviStyles({ grid, fieldPolygon }) {
+  const cells = useMemo(() => {
+    if (!grid?.values?.length) return [];
+    const { values } = grid;
+    const rows = 12, cols = 12;
+    let i = 0;
+    const out = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Just calculating the delay to match keys
+        out.push({ key: `ndvi-cell-${r}-${c}`, delay: i * 50 });
+        i++;
+      }
+    }
+    return out;
+  }, [grid, fieldPolygon]);
+
+  return (
+    <style>
+      {cells.map(c => `.${c.key} { animation: ndvi-fade 0.5s ease-out ${c.delay}ms forwards; opacity: 0; }`).join('\n')}
+    </style>
   );
 }
 
@@ -256,16 +291,16 @@ export default function MapLayer() {
   const advisoryData   = useStore((s) => s.advisoryData);
   const revealed       = useStore((s) => s.revealed);
   const advisoryPanelOpen = useStore((s) => s.advisoryPanelOpen);
+  const activePanel    = useStore((s) => s.activePanel);
   const ndviGrid       = advisoryData?.ndvi_grid;
   const mapWrapRef     = useRef(null);
-  const location       = useLocation();
 
   const ndviMean = ndviGrid?.values?.length
     ? (ndviGrid.values.reduce((a, b) => a + b, 0) / ndviGrid.values.length).toFixed(2)
     : '0.00';
 
-  // On pages that don't use the map, make it invisible but keep it mounted
-  const isMapPage = ['/', '/dashboard'].includes(location.pathname);
+  // Use activePanel instead of URL routing
+  const isMapPage = activePanel === 'dashboard';
   useEffect(() => {
     const el = mapWrapRef.current;
     if (!el) return;
@@ -337,6 +372,9 @@ export default function MapLayer() {
         {ndviGrid && <NdviGrid grid={ndviGrid} fieldPolygon={fieldPolygon} />}
         {ndviGrid && !fieldPolygon && <NdviFitter bounds={ndviGrid.bounds} />}
       </MapContainer>
+
+      {/* Render raw DOM nodes OUTSIDE of MapContainer to prevent React/Leaflet DOM conflicts */}
+      {ndviGrid && <NdviStyles grid={ndviGrid} fieldPolygon={fieldPolygon} />}
 
       {/* Clear Button */}
       {fieldPolygon && (

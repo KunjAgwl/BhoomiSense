@@ -18,6 +18,7 @@ export const useStore = create((set) => ({
   selectedLanguage: 'en',
   revealed: false,
   diagnoseOpen: false,
+  activePanel: 'dashboard',   // ← REPLACES react-router-dom! ('dashboard', 'analytics', 'planner', etc.)
 
   // --- Geolocation ---
   geoStatus: 'idle',
@@ -30,6 +31,7 @@ export const useStore = create((set) => ({
   setSelectedLanguage: (lang) => set({ selectedLanguage: lang }),
   setRevealed: (v) => set({ revealed: v }),
   setDiagnoseOpen: (v) => set({ diagnoseOpen: v }),
+  setActivePanel: (panel) => set({ activePanel: panel }),
 
   requestLocation: () => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {

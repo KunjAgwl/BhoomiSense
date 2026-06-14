@@ -1,9 +1,14 @@
 .crop-doctor-page {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
   min-height: 100vh;
-  padding-top: 80px;
-  background: var(--color-bg-dark);
-  color: var(--text-glass);
+  background: rgba(3, 6, 4, 0.96);
+  backdrop-filter: blur(12px);
+  color: #eaf2ea;
   font-family: var(--font-body);
+  padding: 80px 20px 40px;
 }
 
 .crop-doctor-container {
@@ -274,6 +279,8 @@
   transition: all 150ms ease;
 }
 .cd-btn-secondary:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
+
 
 .cd-btn-primary {
   flex: 2;

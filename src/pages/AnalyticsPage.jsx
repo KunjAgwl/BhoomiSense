@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useStore } from '../store/useStore';
-import { useNavigate } from 'react-router-dom';
 import {
   AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis,
   ResponsiveContainer, XAxis, YAxis, Tooltip,
@@ -145,16 +144,40 @@ function SensorBar({ label, value, max, color, unit, sublabel }) {
 function Neighbourhood({ farmerNdvi }) {
   const [data, setData] = useState(null);
   useEffect(() => {
-    fetch('/api/neighbor-ndvi', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ndviMean: farmerNdvi }),
-    }).then(r => r.json()).then(d => {
-      setData(d);
+    const USE_REAL_BACKEND = false;
+
+    if (USE_REAL_BACKEND) {
+      fetch('/api/neighbor-ndvi', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ndviMean: farmerNdvi }),
+      }).then(r => r.json()).then(d => {
+        setData(d);
+        setTimeout(() => {
+          gsap.fromTo('.nb-bar-fill', { scaleX: 0 },
+            { scaleX: 1, stagger: 0.06, duration: 0.9, ease: 'expo.out' });
+        }, 100);
+      }).catch(() => {});
+    } else {
       setTimeout(() => {
-        gsap.fromTo('.nb-bar-fill', { scaleX: 0 },
-          { scaleX: 1, stagger: 0.06, duration: 0.9, ease: 'expo.out' });
-      }, 100);
-    }).catch(() => {});
+        setData({
+          farmerNdvi: farmerNdvi.toFixed(2),
+          neighborValues: [
+            Math.max(0, farmerNdvi - 0.12).toFixed(2),
+            Math.max(0, farmerNdvi - 0.05).toFixed(2),
+            Math.min(1, farmerNdvi + 0.04).toFixed(2),
+            Math.max(0, farmerNdvi - 0.18).toFixed(2),
+            Math.min(1, farmerNdvi + 0.08).toFixed(2),
+            Math.max(0, farmerNdvi - 0.22).toFixed(2),
+          ].sort((a,b)=>b-a),
+          rank: 2,
+          totalFields: 7
+        });
+        setTimeout(() => {
+          gsap.fromTo('.nb-bar-fill', { scaleX: 0 },
+            { scaleX: 1, stagger: 0.06, duration: 0.9, ease: 'expo.out' });
+        }, 100);
+      }, 600);
+    }
   }, [farmerNdvi]);
 
   if (!data) {
@@ -193,8 +216,8 @@ function Neighbourhood({ farmerNdvi }) {
 }
 
 export default function AnalyticsPage() {
-  const advisoryData = useStore((s) => s.advisoryData);
-  const navigate     = useNavigate();
+  const advisoryData   = useStore((s) => s.advisoryData);
+  const setActivePanel = useStore((s) => s.setActivePanel);
 
   if (!advisoryData) {
     return (
@@ -202,7 +225,7 @@ export default function AnalyticsPage() {
         <div className="ana-empty">
           <div className="ana-empty-ring" />
           <span className="mono" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>No field data yet.</span>
-          <button className="ana-go-btn" onClick={() => navigate('/dashboard')}>Go to Dashboard →</button>
+          <button className="ana-go-btn" onClick={() => setActivePanel('dashboard')}>Close Panel to Run Advisory</button>
         </div>
       </div>
     );

@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
-import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import './YieldPage.css';
 
@@ -74,7 +73,6 @@ function FactorRow({ factorKey, factor }) {
 // ── Main page ──────────────────────────────────────────────────
 export default function YieldPage() {
   const advisoryData = useStore(s => s.advisoryData);
-  const navigate     = useNavigate();
 
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
@@ -99,15 +97,42 @@ export default function YieldPage() {
   useEffect(() => {
     if (!crop) return;
     setLoading(true);
-    fetch('/api/yield-prediction', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ crop, ndviMean, soilMoisture, rainfall7day, temp }),
-    })
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(d => { setData(d); setSliderMoisture(soilMoisture); setWhatifYield(d.predictedYield); })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
+    const USE_REAL_BACKEND = false;
+
+    if (USE_REAL_BACKEND) {
+      fetch('/api/yield-prediction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ crop, ndviMean, soilMoisture, rainfall7day, temp }),
+      })
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => { setData(d); setSliderMoisture(soilMoisture); setWhatifYield(d.predictedYield); })
+        .catch(e => setError(e.message))
+        .finally(() => setLoading(false));
+    } else {
+      setTimeout(() => {
+        const mockData = {
+          predictedYield: 4.25,
+          nationalAvg: 3.8,
+          yieldVsAvg: 11.8,
+          confidence: 88,
+          msp: 2275,
+          revenueEstimate: 96687,
+          season: 'Kharif 2026',
+          explanation: `Strong NDVI indices (${ndviMean}) suggest high vegetative vigor. Soil moisture (${soilMoisture}%) is well within the optimal range. The model confidently predicts an above-average yield.`,
+          factors: {
+            ndvi: { label: 'NDVI', value: ndviMean, score: 1.35 },
+            moisture: { label: 'Soil Moisture', value: soilMoisture, score: 1.15 },
+            rainfall: { label: '7D Rain', value: rainfall7day, score: 0.95 },
+            temperature: { label: 'Temp', value: temp, score: 1.0 }
+          }
+        };
+        setData(mockData);
+        setSliderMoisture(soilMoisture);
+        setWhatifYield(mockData.predictedYield);
+        setLoading(false);
+      }, 800);
+    }
   }, [crop]);
 
   // Animate yield number
@@ -139,7 +164,7 @@ export default function YieldPage() {
           <div style={{fontSize:'3rem',opacity:0.3}}>📊</div>
           <h2>Yield Predictor</h2>
           <p>Run an advisory on the Dashboard first to unlock AI yield predictions.</p>
-          <button className="yield-go-btn" onClick={() => navigate('/dashboard')}>Go to Dashboard →</button>
+          <button className="yield-go-btn" onClick={() => setActivePanel('dashboard')}>Close Panel to Run Advisory</button>
         </div>
       </div>
     );

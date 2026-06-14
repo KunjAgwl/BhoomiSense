@@ -25,7 +25,7 @@ import { buildMockAdvisory } from '../data/mockAdvisory';
 
 const SIMULATED_LATENCY_MS = 1500;
 
-const USE_REAL_BACKEND = true;
+const USE_REAL_BACKEND = false;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 /** ndvi_grid.values may be a 2D array or a JSON string — normalize to array. */

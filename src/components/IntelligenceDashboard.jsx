@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useStore } from '../store/useStore';
-import { useNavigate } from 'react-router-dom';
+
 import { LANGUAGES } from '../data/constants';
 import './IntelligenceDashboard.css';
 
@@ -132,8 +132,8 @@ export default function IntelligenceDashboard() {
   const dashboardOpen      = useStore(s => s.dashboardOpen);
   const selectedLanguage   = useStore(s => s.selectedLanguage);
   const setSelectedLanguage = useStore(s => s.setSelectedLanguage);
+  const setActivePanel     = useStore((s) => s.setActivePanel);
   const closeDashboard     = useStore(s => s.closeDashboard);
-  const navigate           = useNavigate();
 
   const [activeDay, setActiveDay] = useState(0);
   const [speaking, setSpeaking]   = useState(false);
@@ -245,7 +245,7 @@ export default function IntelligenceDashboard() {
             title={speaking ? 'Stop' : 'Read aloud'}>
             {speaking ? '■' : '▶'}
           </button>
-          <button className="tts-btn-mini" onClick={() => navigate('/analytics')} title="Analytics">&#9650;</button>
+          <button className="tts-btn-mini" onClick={() => setActivePanel('analytics')} title="Analytics">&#9650;</button>
           <button className="close-panel-btn" onClick={handleClose} title="Close">&#215;</button>
         </div>
       </div>

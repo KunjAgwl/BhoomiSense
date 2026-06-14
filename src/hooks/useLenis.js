@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useLocation } from 'react-router-dom';
+import { useStore } from '../store/useStore';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,8 +12,8 @@ gsap.registerPlugin(ScrollTrigger);
  * it causes the "map stuck / can't scroll" bug.
  */
 export function useLenis() {
-  const location = useLocation();
-  const isLanding = location.pathname === '/';
+  const activePanel = useStore((s) => s.activePanel);
+  const isLanding = activePanel === 'dashboard';
 
   useEffect(() => {
     // Skip Lenis entirely on the landing page — ScrollTrigger owns scroll there

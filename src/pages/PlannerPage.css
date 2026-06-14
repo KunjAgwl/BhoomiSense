@@ -3,8 +3,13 @@
    ============================================================ */
 
 .planner-page {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
   min-height: 100vh;
-  background: #030604;
+  background: rgba(3, 6, 4, 0.96);
+  backdrop-filter: blur(12px);
   color: #eaf2ea;
   font-family: var(--font-body);
   padding-top: 60px;

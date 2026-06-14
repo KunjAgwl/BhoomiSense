@@ -3,11 +3,16 @@
    ============================================================ */
 
 .about-page {
-  background: #030604;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(3, 6, 4, 0.96);
+  backdrop-filter: blur(12px);
   color: #eaf2ea;
   font-family: var(--font-body);
   padding-top: 60px; /* nav */
-  overflow-x: hidden;
 }
 
 /* ── Reveal system ─────────────────────────────────────── */

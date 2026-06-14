@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useStore } from '../store/useStore';
-import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
 import './PlannerPage.css';
 
 const TYPE_COLOR = {
@@ -64,9 +64,10 @@ function MonthMarkers({ startDate }) {
 }
 
 export default function PlannerPage() {
+  const activePanel  = useStore((s) => s.activePanel);
+  const setActivePanel = useStore((s) => s.setActivePanel);
   const advisoryData = useStore((s) => s.advisoryData);
   const pinLocation  = useStore((s) => s.pinLocation);
-  const navigate     = useNavigate();
 
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
@@ -88,18 +89,40 @@ export default function PlannerPage() {
     if (!crop || !lat || !lon) return;
     setLoading(true);
     setError(null);
-    fetch('/api/crop-calendar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        lat, lon, crop, state,
-        currentDate: new Date().toISOString().split('T')[0],
-      }),
-    })
-      .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
-      .then(setCalData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    const USE_REAL_BACKEND = false;
+
+    if (USE_REAL_BACKEND) {
+      fetch('/api/crop-calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lat, lon, crop, state,
+          currentDate: new Date().toISOString().split('T')[0],
+        }),
+      })
+        .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+        .then(setCalData)
+        .catch((e) => setError(e.message))
+        .finally(() => setLoading(false));
+    } else {
+      // Mock data for frontend demo
+      setTimeout(() => {
+        setCalData({
+          startDate: new Date().toISOString(),
+          summary: '180-day optimal schedule based on historical monsoons.',
+          calendar: [
+            { day: 1, type: 'prepare', icon: '🚜', activity: 'Land Preparation', description: 'Deep ploughing to expose soil.', urgency: 'normal' },
+            { day: 5, type: 'sow', icon: '🌱', activity: 'Sowing', description: 'Sow seeds at 5cm depth.', urgency: 'normal' },
+            { day: 25, type: 'irrigate', icon: '💧', activity: 'First Irrigation', description: 'Critical moisture required.', urgency: 'critical' },
+            { day: 45, type: 'fertilize', icon: '🧪', activity: 'Top Dressing', description: 'Apply 30kg/ha Nitrogen.', urgency: 'normal' },
+            { day: 70, type: 'spray', icon: '💊', activity: 'Pesticide Application', description: 'Preventive spray for stem borer.', urgency: 'normal' },
+            { day: 100, type: 'irrigate', icon: '💧', activity: 'Flowering Stage Irrigation', description: 'Ensure no water stress.', urgency: 'critical' },
+            { day: 150, type: 'harvest', icon: '🌾', activity: 'Harvesting', description: 'Harvest when grains are hard.', urgency: 'normal' },
+          ]
+        });
+        setLoading(false);
+      }, 800);
+    }
   }, [crop, lat, lon, state]);
 
   // Auto-scroll to today marker after data loads
@@ -153,8 +176,8 @@ export default function PlannerPage() {
           <div className="planner-empty-icon">🗓</div>
           <h2>Season Planner</h2>
           <p>Run an advisory on the Dashboard first to unlock your personalised 180-day crop calendar.</p>
-          <button className="planner-go-btn" onClick={() => navigate('/dashboard')}>
-            Go to Dashboard →
+          <button className="planner-go-btn" onClick={() => setActivePanel('dashboard')}>
+            Close Panel to Run Advisory
           </button>
         </div>
       </div>

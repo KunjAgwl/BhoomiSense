@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useStore } from '../store/useStore';
 import './AboutPage.css';
 
 // ── Reusable reveal hook ──────────────────────────────────────────────────────
@@ -96,6 +96,7 @@ const PersonIcon = () => (
 );
 
 export default function AboutPage() {
+  const setActivePanel = useStore((s) => s.setActivePanel);
   // Opening headline lines reveal
   const openingRef = useRef(null);
   const statsRef   = useRef(null);
@@ -245,7 +246,7 @@ export default function AboutPage() {
           <span className="label" style={{ color: 'var(--color-signal)' }}>READY TO TRY IT</span>
           <h2 className="cta-headline">Drop a pin anywhere in India.</h2>
           <p className="cta-body">It takes 8 seconds. You'll get NDVI crop health, soil moisture, a 3-day action plan, and Mandi prices — in your language.</p>
-          <Link to="/dashboard" className="cta-btn">Open Dashboard →</Link>
+          <button onClick={() => setActivePanel('dashboard')} className="cta-btn" style={{border: 'none', cursor: 'pointer'}}>Open Dashboard →</button>
         </div>
       </section>
 

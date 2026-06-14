@@ -1,9 +1,8 @@
 import { useLenis } from './hooks/useLenis';
-import { Routes, Route } from 'react-router-dom';
+import { useStore } from './store/useStore';
 import GlobalNav from './components/GlobalNav';
 import MapLayer from './components/MapLayer';
 import LandingPage from './pages/LandingPage';
-import DashboardPage from './pages/DashboardPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import CropDoctorPage from './pages/CropDoctorPage';
 import MarketPage from './pages/MarketPage';
@@ -13,21 +12,26 @@ import YieldPage from './pages/YieldPage';
 
 export default function App() {
   useLenis();
+  const activePanel = useStore((s) => s.activePanel);
 
   return (
     <>
       <GlobalNav />
       <MapLayer />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/crop-doctor" element={<CropDoctorPage />} />
-        <Route path="/market" element={<MarketPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/planner" element={<PlannerPage />} />
-        <Route path="/yield" element={<YieldPage />} />
-      </Routes>
+      
+      {/* The main cinematic intro + dashboard always renders at the base level */}
+      {/* Its internal UI toggles via the 'revealed' state */}
+      <div style={{ display: activePanel === 'dashboard' ? 'block' : 'none' }}>
+        <LandingPage />
+      </div>
+
+      {/* Other tools overlay on top */}
+      {activePanel === 'analytics'   && <AnalyticsPage />}
+      {activePanel === 'crop-doctor' && <CropDoctorPage />}
+      {activePanel === 'market'      && <MarketPage />}
+      {activePanel === 'about'       && <AboutPage />}
+      {activePanel === 'planner'     && <PlannerPage />}
+      {activePanel === 'yield'       && <YieldPage />}
     </>
   );
 }

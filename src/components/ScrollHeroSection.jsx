@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useNavigate } from 'react-router-dom';
+import { useStore } from '../store/useStore';
 import './ScrollHeroSection.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -52,8 +52,9 @@ export default function ScrollHeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
   
-  const navigate = useNavigate();
+  const setRevealed = useStore((s) => s.setRevealed);
   const navigatedRef = useRef(false);
+  const locRequestedRef = useRef(false);
 
   // Initialize GSAP unconditionally so scrolling always works
   useEffect(() => {
@@ -66,101 +67,112 @@ export default function ScrollHeroSection() {
       mapEl.style.transform = 'scale(1.1)';
     }
 
-    const render = (p) => {
-      // 1. Scrub Video
-      if (video && video.readyState >= 1 && !isNaN(video.duration)) {
-        // Scrubbing the video based on scroll progress
-        video.currentTime = video.duration * p;
-      }
-
-      // 2. HUD Updates
-      if (p <= HOLD_END) {
-        if (stickyRef.current) stickyRef.current.style.opacity = '1';
-        if (video) video.style.opacity = '1';
-        if (mapEl) {
-          mapEl.style.opacity = '0';
-          mapEl.style.transform = 'scale(1.1)';
+    let st;
+    const ctx = gsap.context(() => {
+      const render = (p) => {
+        // 1. Scrub Video
+        if (video && video.readyState >= 1 && !isNaN(video.duration)) {
+          // Scrubbing the video based on scroll progress
+          video.currentTime = video.duration * p;
         }
-        if (hudLabelRef.current) hudLabelRef.current.textContent = 'ANALYZING SURFACE';
-        if (railFillRef.current) railFillRef.current.style.transform = `scaleX(${p / HOLD_END})`;
-      } else {
-        // Phase C: Reveal Map
-        const rev = (p - HOLD_END) / (1 - HOLD_END);
-        const dive = smootherstep(rev);
-        
-        if (video) video.style.opacity = (1 - smootherstep(clamp01(rev * 1.5))).toFixed(3);
 
-        if (stickyRef.current) {
-          stickyRef.current.style.opacity = (1 - smootherstep(clamp01((rev - 0.1) / 0.9))).toFixed(3);
-        }
-        if (mapEl) {
-          mapEl.style.opacity = clamp01(rev * 1.5).toFixed(3);
-          mapEl.style.transform = `scale(${(1.1 - 0.1 * dive).toFixed(4)})`;
-        }
-        if (hudLabelRef.current) hudLabelRef.current.textContent = 'TARGET ACQUIRED';
-      }
+        // 2. HUD Updates
+        if (p <= HOLD_END) {
+          if (stickyRef.current) stickyRef.current.style.opacity = '1';
+          if (video) video.style.opacity = '1';
+          if (mapEl) {
+            mapEl.style.opacity = '0';
+            mapEl.style.transform = 'scale(1.1)';
+          }
+          if (hudLabelRef.current) hudLabelRef.current.textContent = 'ANALYZING SURFACE';
+          if (railFillRef.current) railFillRef.current.style.transform = `scaleX(${p / HOLD_END})`;
+        } else {
+          // Phase C: Reveal Map
+          const rev = (p - HOLD_END) / (1 - HOLD_END);
+          const dive = smootherstep(rev);
+          
+          if (video) video.style.opacity = (1 - smootherstep(clamp01(rev * 1.5))).toFixed(3);
 
-      // Hero title: only during first 8%
-      if (heroTextRef.current) {
-        const tp = smootherstep(clamp01(p / 0.08));
-        heroTextRef.current.style.opacity = (1 - tp).toFixed(3);
-        heroTextRef.current.style.transform = `scale(${(1 + tp * 0.45).toFixed(3)})`;
-      }
-      if (chevronRef.current) {
-        chevronRef.current.style.opacity = clamp01(1 - p / 0.04).toFixed(3);
-      }
-
-      // Scene texts: one at a time
-      textRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const op = sceneOpacity(p, SCENE_WINDOWS[i]);
-        el.style.opacity = op.toFixed(3);
-        const [i0, i1, o0, o1] = SCENE_WINDOWS[i];
-        let y = 0;
-        if (p < i1 && p > i0) {
-          y = lerp(24, 0, smootherstep((p - i0) / (i1 - i0)));
-        } else if (p > o0 && p < o1) {
-          y = lerp(0, -24, smootherstep((p - o0) / (o1 - o0)));
+          if (stickyRef.current) {
+            stickyRef.current.style.opacity = (1 - smootherstep(clamp01((rev - 0.1) / 0.9))).toFixed(3);
+          }
+          if (mapEl) {
+            mapEl.style.opacity = clamp01(rev * 1.5).toFixed(3);
+            mapEl.style.transform = `scale(${(1.1 - 0.1 * dive).toFixed(4)})`;
+          }
+          if (hudLabelRef.current) hudLabelRef.current.textContent = 'TARGET ACQUIRED';
         }
-        el.style.transform = `translateY(${y.toFixed(1)}px)`;
+
+        // Hero title: only during first 8%
+        if (heroTextRef.current) {
+          const tp = smootherstep(clamp01(p / 0.08));
+          heroTextRef.current.style.opacity = (1 - tp).toFixed(3);
+          heroTextRef.current.style.transform = `scale(${(1 + tp * 0.45).toFixed(3)})`;
+        }
+        if (chevronRef.current) {
+          chevronRef.current.style.opacity = clamp01(1 - p / 0.04).toFixed(3);
+        }
+
+        // Scene texts: one at a time
+        textRefs.current.forEach((el, i) => {
+          if (!el) return;
+          const op = sceneOpacity(p, SCENE_WINDOWS[i]);
+          el.style.opacity = op.toFixed(3);
+          const [i0, i1, o0, o1] = SCENE_WINDOWS[i];
+          let y = 0;
+          if (p < i1 && p > i0) {
+            y = lerp(24, 0, smootherstep((p - i0) / (i1 - i0)));
+          } else if (p > o0 && p < o1) {
+            y = lerp(0, -24, smootherstep((p - o0) / (o1 - o0)));
+          }
+          el.style.transform = `translateY(${y.toFixed(1)}px)`;
+        });
+      };
+
+      render(0);
+
+      st = ScrollTrigger.create({
+        trigger: pinRef.current,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1.2,
+        pin: true,
+        pinSpacing: true,
+        scroller: window,
+        onUpdate: (self) => {
+          render(self.progress);
+          setProgress(self.progress);
+
+          // Reveal the dashboard once scroll fully completes
+          if (self.progress >= 0.99) {
+            if (!navigatedRef.current) {
+              navigatedRef.current = true;
+              setRevealed(true);
+            }
+          } else {
+            if (navigatedRef.current) {
+              navigatedRef.current = false;
+              setRevealed(false);
+            }
+          }
+        },
+        onLeave: () => {
+          if (!navigatedRef.current) {
+            navigatedRef.current = true;
+            setRevealed(true);
+          }
+        },
       });
-    };
 
-    render(0);
-
-    const st = ScrollTrigger.create({
-      trigger: pinRef.current,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 1.2,
-      pin: true,
-      pinSpacing: true,
-      scroller: window,
-      onUpdate: (self) => {
-        render(self.progress);
-        setProgress(self.progress);
-        // Auto-navigate once scroll fully completes
-        if (self.progress >= 0.99 && !navigatedRef.current) {
-          navigatedRef.current = true;
-          setTimeout(() => navigate('/dashboard'), 600);
-        }
-      },
-      onLeave: () => {
-        if (!navigatedRef.current) {
-          navigatedRef.current = true;
-          navigate('/dashboard');
-        }
-      },
+      ScrollTrigger.refresh();
     });
 
-    ScrollTrigger.refresh();
-
     return () => {
-      st.kill();
+      ctx.revert(); // This puts all pinned DOM nodes back so React can unmount them cleanly!
       navigatedRef.current = false;
       if (mapEl) { mapEl.style.opacity = ''; mapEl.style.transform = ''; }
     };
-  }, [navigate]);
+  }, []);
 
   const heroDone = progress > 0.995;
 
@@ -235,7 +247,7 @@ export default function ScrollHeroSection() {
           <span className="scene-label">DROP A PIN · GET AN ADVISORY</span>
           <h1 className="scene-headline">Your Field.<br />Now.</h1>
           <div className="scene-cta-wrapper">
-            <button className="scene-cta" onClick={() => navigate('/dashboard')}>
+            <button className="scene-cta" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>
               Enter Bhoomi Sense →
             </button>
           </div>
@@ -259,7 +271,7 @@ export default function ScrollHeroSection() {
           <div className="zoom-enter-action">
             <button
               className="zoom-enter-btn"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => setRevealed(true)}
               aria-label="Enter Bhoomi Sense dashboard"
             >
               ENTER BHOOMI SENSE

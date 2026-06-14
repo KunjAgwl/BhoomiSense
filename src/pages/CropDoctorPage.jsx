@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
+
 import gsap from 'gsap';
 import './CropDoctorPage.css';
 
@@ -25,7 +25,6 @@ const URGENCY_COLOR = {
 };
 
 export default function CropDoctorPage() {
-  const navigate = useNavigate();
   const selectedCrop  = useStore((s) => s.selectedCrop);
   const selectedState = useStore((s) => s.selectedState);
   const pinLocation   = useStore((s) => s.pinLocation);
@@ -83,20 +82,38 @@ export default function CropDoctorPage() {
     clearInterval(intervalRef.current);
 
     try {
-      const res = await fetch('/api/diagnose-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: b64,
-          lat:       pinLocation?.lat || 20.5,
-          lon:       pinLocation?.lon || 78.9,
-          state:     selectedState    || 'India',
-          commodity: selectedCrop     || 'crop',
-        }),
-      });
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
-      const json = await res.json();
-      setDiagnosis(json.data?.diagnosis || json.diagnosis);
+      const USE_REAL_BACKEND = false;
+      let diagnosisData;
+
+      if (USE_REAL_BACKEND) {
+        const res = await fetch('/api/diagnose-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: b64,
+            lat:       pinLocation?.lat || 20.5,
+            lon:       pinLocation?.lon || 78.9,
+            state:     selectedState    || 'India',
+            commodity: selectedCrop     || 'crop',
+          }),
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const json = await res.json();
+        diagnosisData = json.data?.diagnosis || json.diagnosis;
+      } else {
+        // Mock data for frontend demo
+        diagnosisData = {
+          diseaseName: 'Early Blight (Alternaria)',
+          cause: 'Fungal Infection',
+          severity: 'MODERATE',
+          confidence: 'HIGH',
+          treatment: 'Apply a fungicide containing chlorothalonil or copper soap. Ensure proper plant spacing for air circulation.',
+          prevention: 'Rotate crops yearly. Remove and burn infected plant debris at the end of the season.',
+          urgency: 'WITHIN_3_DAYS'
+        };
+      }
+
+      setDiagnosis(diagnosisData);
       setPhase('result');
       setTimeout(() => {
         gsap.fromTo('.diagnosis-result', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out' });
@@ -119,7 +136,7 @@ export default function CropDoctorPage() {
   const addToAdvisory = () => {
     if (!diagnosis) return;
     const params = new URLSearchParams({ diagnosis: JSON.stringify(diagnosis) });
-    navigate(`/dashboard?${params.toString()}`);
+    navigate(`/?${params.toString()}`);
   };
 
   // Confidence arc (SVG circle)

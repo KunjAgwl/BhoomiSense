@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+
 import { useStore } from '../store/useStore';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer,
@@ -134,9 +134,8 @@ function ProfitCalc({currentPrice}){
 const CROPS=['Wheat','Rice','Maize','Cotton','Soybean','Potato','Onion','Tomato'];
 
 export default function MarketPage(){
-  const [searchParams]=useSearchParams();
   const lastCrop=useStore(s=>s.selectedCrop);
-  const initCrop=searchParams.get('crop')||lastCrop||'Wheat';
+  const initCrop=lastCrop||'Wheat';
   const [activeCrop,setActiveCrop]=useState(CROPS.includes(initCrop)?initCrop:'Wheat');
   const [chartOpacity,setChartOpacity]=useState(1);
   const data=useMemo(()=>seedPriceHistory(activeCrop),[activeCrop]);
