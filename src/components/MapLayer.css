@@ -8,9 +8,18 @@
   z-index: var(--z-map);
   transform-origin: center center;
   will-change: opacity, transform;
-  /* initial: hidden behind the cinematic; ScrollHeroSection drives these */
   opacity: 0;
   transform: scale(1.12);
+  transition: left 0.55s cubic-bezier(0.16,1,0.3,1),
+              width 0.55s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* When advisory panel is open — map lives on the right half */
+.map-layer--split {
+  left: 50vw;
+  width: 50vw;
+  opacity: 1 !important;
+  transform: scale(1) !important;
 }
 
 .map-container {
@@ -81,3 +90,109 @@
     padding: 0.5rem 0.75rem;
   }
 }
+@keyframes ndvi-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ndvi-tooltip {
+  background: var(--color-surface);
+  border: 1px solid rgba(57, 255, 106, 0.4);
+  color: var(--color-primary);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+}
+
+/* NDVI Legend Overlay */
+.ndvi-legend {
+  position: absolute;
+  bottom: 32px;
+  right: 24px;
+  z-index: 1000;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  width: 170px;
+  background: rgba(5, 8, 10, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.ramp-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 4px 0;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
+}
+.ramp-swatch {
+  width: 16px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Satellite Status Badge */
+.sat-status-badge {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(5, 8, 10, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  color: var(--color-text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  white-space: nowrap;
+}
+
+.sat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+.sat-dot.pulsing {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── Leaflet Draw toolbar — dark theme ───────────────── */
+.leaflet-draw-toolbar a,
+.leaflet-bar a {
+  background-color: rgba(5, 8, 10, 0.88) !important;
+  border-color: rgba(255,255,255,0.15) !important;
+  color: #eaf2ea !important;
+}
+.leaflet-draw-toolbar a:hover,
+.leaflet-bar a:hover {
+  background-color: rgba(74,222,128,0.15) !important;
+  color: #4ADE80 !important;
+}
+.leaflet-bar {
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+.leaflet-bar a:first-child { border-radius: 8px 8px 0 0 !important; }
+.leaflet-bar a:last-child  { border-radius: 0 0 8px 8px !important; border-bottom: none !important; }
+.leaflet-bar a             { border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
+
+/* Draw toolbar icons (SVG sprites use background-image — keep them, just fix border) */
+.leaflet-draw-toolbar.leaflet-bar { margin-top: 8px; }
+
+/* Leaflet zoom control (appears in top-left) */
+.leaflet-control-zoom { display: none; }
+
+/* sat-status-badge white text */
+.sat-status-badge { color: #eaf2ea !important; }

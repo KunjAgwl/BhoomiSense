@@ -5,9 +5,7 @@ import Icon from './Icon';
 import './DiagnosisPanel.css';
 
 /**
- * Leaf Photo Diagnosis (Feature 7) — synthetic-data version.
- * Upload a leaf photo → preview → "Analyze" runs a mocked diagnosis
- * (no API / no keys) matching the backend `/api/diagnose-image` shape.
+ * Upload a leaf photo → POSTs to /api/diagnose-image using real AI vision.
  */
 
 const SEVERITY_CLASS = {
@@ -52,14 +50,53 @@ export default function DiagnosisPanel() {
     setResult(null);
   };
 
-  const analyze = () => {
+  const analyze = async () => {
     setAnalyzing(true);
     setResult(null);
-    // Synthetic latency so the scan feels real.
-    setTimeout(() => {
-      setResult(buildMockDiagnosis());
+
+    try {
+      const resp = await fetch(imageUrl);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+
+      reader.readAsDataURL(blob);
+      reader.onloadend = async () => {
+        const base64data = reader.result.split(',')[1];
+        try {
+          const lat = useStore.getState().pinLocation?.lat || 20.5;
+          const lon = useStore.getState().pinLocation?.lon || 78.9;
+          const state = useStore.getState().selectedState || '';
+          const crop = useStore.getState().selectedCrop || '';
+          
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          const response = await fetch(`${API_BASE_URL}/api/diagnose-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: base64data, lat, lon, state, commodity: crop })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Diagnosis failed.`);
+          }
+          const { data } = await response.json();
+          setResult(data.diagnosis);
+        } catch (error) {
+          setResult({
+            diseaseName: "Diagnosis Error",
+            confidence: "LOW",
+            severity: "UNKNOWN",
+            cause: "Failed to reach AI. Ensure network is stable.",
+            treatment: "Try scanning again later.",
+            prevention: "-",
+            urgency: "MONITOR"
+          });
+        } finally {
+          setAnalyzing(false);
+        }
+      };
+    } catch (err) {
       setAnalyzing(false);
-    }, 1600);
+    }
   };
 
   return (

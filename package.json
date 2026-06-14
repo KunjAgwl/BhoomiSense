@@ -11,10 +11,13 @@
   "dependencies": {
     "gsap": "^3.12.5",
     "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
     "lenis": "^1.1.13",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
+    "react-leaflet-draw": "^0.21.0",
+    "react-router-dom": "^7.17.0",
     "recharts": "^2.12.7",
     "zustand": "^4.5.4"
   },

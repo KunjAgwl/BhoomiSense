@@ -2,16 +2,23 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useLocation } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Initialize Lenis smooth scroll once at the root (Section 2) and drive it from
- * GSAP's ticker so ScrollTrigger and Lenis share a single RAF loop (avoids
- * jitter between the pinned hero and smooth scrolling).
+ * Initialize Lenis smooth scroll — but ONLY on non-landing pages.
+ * On "/" the GSAP ScrollTrigger pin handles all scrolling; Lenis fighting
+ * it causes the "map stuck / can't scroll" bug.
  */
 export function useLenis() {
+  const location = useLocation();
+  const isLanding = location.pathname === '/';
+
   useEffect(() => {
+    // Skip Lenis entirely on the landing page — ScrollTrigger owns scroll there
+    if (isLanding) return;
+
     const lenis = new Lenis({
       lerp: 0.1,
       smoothWheel: true,
@@ -19,11 +26,9 @@ export function useLenis() {
       touchMultiplier: 1.5,
     });
 
-    // Keep ScrollTrigger in sync with Lenis.
     lenis.on('scroll', ScrollTrigger.update);
 
     const raf = (time) => {
-      // GSAP ticker time is in seconds; Lenis expects ms.
       lenis.raf(time * 1000);
     };
     gsap.ticker.add(raf);
@@ -33,5 +38,5 @@ export function useLenis() {
       gsap.ticker.remove(raf);
       lenis.destroy();
     };
-  }, []);
+  }, [isLanding]);
 }

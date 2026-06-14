@@ -26,7 +26,11 @@ export default function AccessibilityBar({ advisory }) {
   // getVoices() is populated asynchronously — listen for voiceschanged.
   useEffect(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    const load = () => setVoices(window.speechSynthesis.getVoices() || []);
+    const load = () => {
+      const v = window.speechSynthesis.getVoices() || [];
+      console.log('[ReadAloud] Available voices:', v.map(voice => `${voice.name} (${voice.lang})`));
+      setVoices(v);
+    };
     load();
     window.speechSynthesis.addEventListener?.('voiceschanged', load);
     return () => {
@@ -46,16 +50,16 @@ export default function AccessibilityBar({ advisory }) {
 
   // Find a voice for the target language; report whether we fell back.
   const resolveVoice = (targetLang) => {
-    const base = targetLang.split('-')[0];
     let voice = voices.find((v) => v.lang === targetLang);
-    if (!voice) voice = voices.find((v) => v.lang?.replace('_', '-').startsWith(base));
+    if (!voice) {
+      const base = targetLang.split('-')[0];
+      voice = voices.find((v) => v.lang?.replace('_', '-').startsWith(base));
+    }
     if (voice) return { voice, lang: targetLang, usedFallback: false };
 
-    const en =
-      voices.find((v) => v.lang === 'en-IN') ||
-      voices.find((v) => v.lang?.startsWith('en')) ||
-      null;
-    return { voice: en, lang: 'en-IN', usedFallback: true };
+    // Fall back to first available if even English isn't found
+    const en = voices.find((v) => v.lang === 'en-IN') || voices.find((v) => v.lang?.startsWith('en')) || voices[0] || null;
+    return { voice: en, lang: en ? en.lang : 'en-US', usedFallback: true };
   };
 
   const handleReadAloud = () => {
@@ -65,7 +69,7 @@ export default function AccessibilityBar({ advisory }) {
     }
     const synth = window.speechSynthesis;
 
-    if (synth.speaking) {
+    if (speaking || synth.speaking) {
       synth.cancel();
       setSpeaking(false);
       return;
@@ -92,11 +96,14 @@ export default function AccessibilityBar({ advisory }) {
 
     if (!text) return;
 
+    synth.cancel(); // cancel any pending previous utterances just in case
     const utterance = new SpeechSynthesisUtterance(text);
     if (voice) utterance.voice = voice;
+    else console.warn("[ReadAloud] No voice available at all.");
+    
     utterance.lang = lang;
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
     utterance.onstart = () => setSpeaking(true);
     utterance.onend = () => setSpeaking(false);
     utterance.onerror = () => setSpeaking(false);

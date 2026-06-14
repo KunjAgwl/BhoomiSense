@@ -1,0 +1,296 @@
+.crop-doctor-page {
+  min-height: 100vh;
+  padding-top: 80px;
+  background: var(--color-bg-dark);
+  color: var(--text-glass);
+  font-family: var(--font-body);
+}
+
+.crop-doctor-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.cd-header {
+  text-align: center;
+}
+.cd-title {
+  font-size: 2.5rem;
+  font-family: var(--font-display);
+  color: #fff;
+  margin-bottom: 0.4rem;
+}
+.cd-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.12em;
+}
+
+/* ── Scan Zone ───────────────────────────────────────────── */
+.scan-zone {
+  width: 100%;
+  max-width: 560px;
+  height: 320px;
+  border: 2px dashed rgba(74,222,128,0.3);
+  border-radius: 20px;
+  background: rgba(74,222,128,0.03);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.scan-zone:hover {
+  border-color: rgba(74,222,128,0.6);
+  background: rgba(74,222,128,0.06);
+}
+
+.scan-zone.scanning {
+  cursor: default;
+  border-color: rgba(74,222,128,0.5);
+}
+
+/* Marching dashes on the border while scanning */
+.scan-zone.scanning {
+  animation: march-border 1.2s linear infinite;
+}
+@keyframes march-border {
+  0%   { border-image: none; }
+}
+
+.scan-zone-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.scan-crosshair svg {
+  animation: crosshair-rotate 8s linear infinite;
+}
+@keyframes crosshair-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.scan-idle-title {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.7);
+}
+.scan-idle-sub {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.08em;
+}
+
+.scan-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+/* Scan line sweep */
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #4ADE80, transparent);
+  box-shadow: 0 0 16px #4ADE80;
+  top: 0;
+  animation: scanSweep 1.2s ease-in-out 3;
+  pointer-events: none;
+}
+@keyframes scanSweep {
+  0%   { top: 0%;   opacity: 1; }
+  90%  { top: 100%; opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.scan-status {
+  font-size: 0.85rem;
+  color: var(--color-signal, #4ADE80);
+  letter-spacing: 0.1em;
+  animation: blink-text 1.2s ease-in-out infinite;
+}
+@keyframes blink-text {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.cd-error {
+  font-size: 0.85rem;
+  color: #FF4500;
+}
+.cd-link {
+  background: none;
+  border: none;
+  color: #4ADE80;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* ── Threat Badge ─────────────────────────────────────────── */
+.threat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+}
+.severity-none,
+.severity-mild   { background: rgba(74,222,128,0.12); color: #4ADE80; border-color: rgba(74,222,128,0.3); }
+.severity-moderate { background: rgba(255,215,0,0.12); color: #FFD700; border-color: rgba(255,215,0,0.3); }
+.severity-severe { background: rgba(255,69,0,0.12); color: #FF4500; border-color: rgba(255,69,0,0.3); animation: pulse-crit 1.5s infinite; }
+.severity-unknown { background: rgba(128,128,128,0.12); color: #888; border-color: rgba(128,128,128,0.3); }
+
+@keyframes pulse-crit {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,69,0,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(255,69,0,0); }
+}
+
+.threat-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.threat-label {
+  font-family: var(--font-mono);
+}
+
+/* ── Diagnosis columns ───────────────────────────────────── */
+.diagnosis-result {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.diagnosis-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.diag-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 1rem;
+}
+.diag-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.diag-cause {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.diag-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.7);
+}
+
+.treatment-header {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 1.2rem;
+}
+.treatment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.treatment-step:last-child { border-bottom: none; }
+
+.step-num {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.25);
+}
+.step-text {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+}
+.urgency-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.08em;
+  align-self: flex-start;
+}
+
+/* ── Action buttons ──────────────────────────────────────── */
+.cd-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.cd-btn-secondary {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.cd-btn-secondary:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
+.cd-btn-primary {
+  flex: 2;
+  padding: 12px;
+  background: var(--color-signal, #4ADE80);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.cd-btn-primary:hover { box-shadow: 0 0 24px rgba(74,222,128,0.4); transform: translateY(-1px); }
+
+@media (max-width: 640px) {
+  .diagnosis-cols { grid-template-columns: 1fr; }
+  .scan-zone { height: 240px; }
+}

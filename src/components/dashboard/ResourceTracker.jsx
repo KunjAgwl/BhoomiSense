@@ -56,13 +56,23 @@ export default function ResourceTracker({ savings, mandi }) {
 
         {/* Mandi Price */}
         <div className="tracker__card liquid">
-          <span className="tracker__card-label mono">MANDI PRICE</span>
+          <div className="tracker__card-header-flex">
+            <span className="tracker__card-label mono">MANDI PRICE</span>
+            {mandi?.note && (
+              <span className="tracker__mandi-badge mono" title={mandi.note}>
+                <Icon name="zap" size={10} /> INDICATIVE
+              </span>
+            )}
+          </div>
           <span className="tracker__crop">{mandi?.crop}</span>
+          {mandi?.market && <span className="tracker__market mono">{mandi.market}</span>}
+          
           <div className="tracker__price-row">
             <span className="tracker__price">
               ₹{mandi ? mandi.current.toLocaleString('en-IN') : '—'}
             </span>
             <span className={`tracker__trend ${rising ? 'is-up' : 'is-down'}`}>
+              {mandi?.trendPercent && <span className="tracker__trend-pct mono">{mandi.trendPercent}</span>}
               <Icon name={rising ? 'trending-up' : 'trending-down'} size={20} strokeWidth={2.2} />
             </span>
           </div>
