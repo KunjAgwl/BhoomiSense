@@ -14,7 +14,6 @@
 function buildNdviGrid(size = 12) {
   const values = [];
   for (let r = 0; r < size; r++) {
-    const row = [];
     for (let c = 0; c < size; c++) {
       // Healthy base, vegetation strongest toward the centre.
       const dx = (c - size / 2) / size;
@@ -28,9 +27,8 @@ function buildNdviGrid(size = 12) {
       // A little organic noise.
       v += (Math.sin(r * 1.7) + Math.cos(c * 2.1)) * 0.02;
 
-      row.push(Math.max(0.05, Math.min(0.92, Number(v.toFixed(2)))));
+      values.push(Math.max(0.05, Math.min(0.92, Number(v.toFixed(2)))));
     }
-    values.push(row);
   }
   return values;
 }
