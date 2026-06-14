@@ -284,6 +284,37 @@ function ScrollEnabler() {
   return null;
 }
 
+function AutoLocator() {
+  const map = useMap();
+  const revealed = useStore((s) => s.revealed);
+  const pinLocation = useStore((s) => s.pinLocation);
+  const setPinLocation = useStore((s) => s.setPinLocation);
+  const [hasLocated, setHasLocated] = useState(false);
+
+  useEffect(() => {
+    if (revealed && !pinLocation && !hasLocated) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            map.flyTo([lat, lon], 16, { duration: 2 });
+            setPinLocation({ lat, lon });
+            setHasLocated(true);
+          },
+          (err) => {
+            console.warn("Geolocation failed or denied:", err);
+            setHasLocated(true);
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      }
+    }
+  }, [revealed, pinLocation, hasLocated, map, setPinLocation]);
+
+  return null;
+}
+
 export default function MapLayer() {
   const pinLocation    = useStore((s) => s.pinLocation);
   const fieldPolygon   = useStore((s) => s.fieldPolygon);
@@ -360,6 +391,7 @@ export default function MapLayer() {
         worldCopyJump
       >
         <ScrollEnabler />
+        <AutoLocator />
         <TileLayer url={SAT_URL} attribution={SAT_ATTR} maxZoom={19} />
         <TileLayer url={LABELS_URL} maxZoom={19} opacity={0.85} />
         <DrawControl />
