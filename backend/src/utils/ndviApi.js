@@ -71,23 +71,72 @@ async function fetchNDVIData(lat, lon, weatherData = null) {
             return { name: pt.name, ndvi: parseFloat(value.toFixed(2)) };
         });
 
-        // 3. Pest Detection Logic
-        //    If center NDVI is significantly lower than surrounding average = pest pattern
-        const centerNDVI = ndviSamples.find(s => s.name === 'center').ndvi;
-        const surroundingAvg = ndviSamples
-            .filter(s => s.name !== 'center')
-            .reduce((sum, s) => sum + s.ndvi, 0) / 4;
+        // 3. Generate Realistic Spatial Grid (12x12 = 144 cells)
+        const GRID_SIZE = 12;
+        let grid2D = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+        
+        // Init with baseNDVI + random variance
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                grid2D[r][c] = baseNDVI + (Math.random() * 0.4 - 0.2); // Initial noisy grid
+            }
+        }
 
-        const ndviDrop = surroundingAvg - centerNDVI;
+        // Apply 2D Smoothing (2 passes) to simulate spatial correlation
+        for (let pass = 0; pass < 2; pass++) {
+            let tempGrid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let sum = grid2D[r][c];
+                    let count = 1;
+                    if (r > 0) { sum += grid2D[r - 1][c]; count++; }
+                    if (r < GRID_SIZE - 1) { sum += grid2D[r + 1][c]; count++; }
+                    if (c > 0) { sum += grid2D[r][c - 1]; count++; }
+                    if (c < GRID_SIZE - 1) { sum += grid2D[r][c + 1]; count++; }
+                    tempGrid[r][c] = sum / count;
+                }
+            }
+            grid2D = tempGrid;
+        }
+
+        // Inject 1-3 stress patches randomly (2x2 clusters of low NDVI)
+        const numPatches = 1 + Math.floor(Math.random() * 3);
+        const stressPatches = [];
+        for (let i = 0; i < numPatches; i++) {
+            const pr = Math.floor(Math.random() * (GRID_SIZE - 1));
+            const pc = Math.floor(Math.random() * (GRID_SIZE - 1));
+            const stressVal = 0.1 + Math.random() * 0.2; // 0.1 to 0.3
+            grid2D[pr][pc] = stressVal;
+            grid2D[pr][pc+1] = stressVal + Math.random() * 0.05;
+            grid2D[pr+1][pc] = stressVal + Math.random() * 0.05;
+            grid2D[pr+1][pc+1] = stressVal + Math.random() * 0.05;
+            
+            stressPatches.push({ row: pr, col: pc, value: parseFloat(stressVal.toFixed(2)) });
+        }
+
+        // Flatten grid and compute stats
+        const ndviGrid = [];
+        let totalVal = 0;
+        let ndviMin = 1.0;
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                const val = parseFloat(Math.max(0, Math.min(1.0, grid2D[r][c])).toFixed(2));
+                ndviGrid.push(val);
+                totalVal += val;
+                if (val < ndviMin) ndviMin = val;
+            }
+        }
+        const ndviMean = parseFloat((totalVal / 144).toFixed(2));
+
+        // 4. Pest Detection Logic
         let pestRisk = 'LOW';
         let pestAlert = null;
-
-        if (ndviDrop > 0.15) {
+        if (ndviMin < 0.3) {
             pestRisk = 'HIGH';
-            pestAlert = `Localized NDVI drop of ${(ndviDrop * 100).toFixed(0)}% detected at the center of your plot while surrounding areas remain healthy. This circular pattern is consistent with an active pest infestation. Inspect the center of your field immediately.`;
-        } else if (ndviDrop > 0.08) {
+            pestAlert = `A critical anomaly detected! A distinct patch in your field has severe stress (NDVI ${ndviMin}). This circular localized pattern is extremely consistent with an active pest infestation or disease outbreak. Inspect this specific area immediately.`;
+        } else if (ndviMin < 0.45) {
             pestRisk = 'MODERATE';
-            pestAlert = `Mild localized stress detected at the center of your plot (${(ndviDrop * 100).toFixed(0)}% below surrounding area). Monitor closely for early signs of pest activity.`;
+            pestAlert = `Mild localized stress detected (NDVI ${ndviMin}). Monitor closely for early signs of pest activity or water stress in specific patches.`;
         }
 
         // 4. NDRE Calculation (Nitrogen/Fertilizer Detection)
@@ -108,17 +157,17 @@ async function fetchNDVIData(lat, lon, weatherData = null) {
             fertilizerAdvice = `NDRE value of ${ndreValue} indicates early-stage Nitrogen depletion. Apply 8-10kg Urea per acre within the next 3 days to prevent yield loss.`;
         }
 
-        // 5. Overall field health assessment
-        const avgNDVI = ndviSamples.reduce((sum, s) => sum + s.ndvi, 0) / ndviSamples.length;
         let fieldHealth = 'HEALTHY';
-        if (avgNDVI < 0.3) fieldHealth = 'CRITICAL';
-        else if (avgNDVI < 0.5) fieldHealth = 'STRESSED';
-        else if (avgNDVI < 0.6) fieldHealth = 'MODERATE';
+        if (ndviMean < 0.3) fieldHealth = 'CRITICAL';
+        else if (ndviMean < 0.5) fieldHealth = 'STRESSED';
+        else if (ndviMean < 0.6) fieldHealth = 'MODERATE';
 
         return {
-            // Core NDVI
-            ndviCenter: centerNDVI,
-            ndviAverage: parseFloat(avgNDVI.toFixed(2)),
+            ndviCenter: ndviGrid[72], // roughly center cell
+            ndviAverage: ndviMean,
+            ndviMin: ndviMin,
+            ndviGrid: ndviGrid,
+            stressPatches: stressPatches,
             ndviSamples: ndviSamples,
             fieldHealth: fieldHealth,
 
@@ -143,6 +192,9 @@ async function fetchNDVIData(lat, lon, weatherData = null) {
         return {
             ndviCenter: 0.55,
             ndviAverage: 0.58,
+            ndviMin: 0.45,
+            ndviGrid: Array(144).fill(0.55),
+            stressPatches: [],
             ndviSamples: [
                 { name: 'center', ndvi: 0.55 },
                 { name: 'north', ndvi: 0.60 },

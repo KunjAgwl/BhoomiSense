@@ -1,0 +1,327 @@
+/* ============================================================
+   ANALYTICS PAGE — cinematic field intelligence
+   ============================================================ */
+
+.ana-page {
+  min-height: 100vh;
+  padding-top: 60px;
+  padding-bottom: 80px;
+  background: #030604;
+  color: #eaf2ea;
+  font-family: var(--font-body);
+}
+
+/* Empty state */
+.ana-empty-page { display: flex; align-items: center; justify-content: center; }
+.ana-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.ana-empty-ring {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 1px solid rgba(74,222,128,0.15);
+  animation: spin 8s linear infinite;
+  position: relative;
+}
+.ana-empty-ring::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(74,222,128,0.08);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ana-go-btn {
+  padding: 10px 24px;
+  background: #4ADE80;
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Shared label */
+.ana-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.25);
+  display: block;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+/* ── HERO SECTION ──────────────────────────────────── */
+.ana-hero {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 0;
+  min-height: 50vh;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.ana-hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  gap: 12px;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 60%, rgba(74,222,128,0.04), transparent 70%);
+}
+.ana-hero-overline {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.3);
+  align-self: flex-start;
+}
+
+/* NDVI Ring */
+.ndvi-ring-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ndvi-ring-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* Right col */
+.ana-hero-right {
+  padding: 32px 32px 32px 28px;
+  display: flex;
+  flex-direction: column;
+}
+.ana-radar-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.25);
+}
+
+/* ── SENSORS ───────────────────────────────────────── */
+.ana-sensors {
+  padding: 40px 32px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ana-sensors-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sensor-bar { display: flex; flex-direction: column; gap: 6px; }
+.sb-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.sb-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.35);
+}
+.sb-val {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.sb-track {
+  position: relative;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: visible;
+}
+.sb-fill {
+  position: absolute;
+  top: 0; left: 0; height: 100%;
+  border-radius: 2px;
+}
+.sb-glow {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  transition: left 1.3s cubic-bezier(0.16,1,0.3,1);
+}
+.sb-sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.25);
+}
+
+/* ── ACTION PLAN ───────────────────────────────────── */
+.ana-plan {
+  padding: 40px 32px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ana-plan-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.api-item { display: flex; flex-direction: column; gap: 8px; }
+.api-day {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.3);
+}
+.api-line { height: 2px; border-radius: 1px; width: 100%; }
+.api-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── IMPACT ────────────────────────────────────────── */
+.ana-impact {
+  padding: 40px 32px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ana-impact-row {
+  display: flex;
+  gap: 48px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.ain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ain-val {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1;
+}
+.ain-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.3);
+}
+.ana-note {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.5;
+  border-left: 2px solid rgba(74,222,128,0.2);
+  padding-left: 10px;
+  margin-top: 16px;
+}
+
+/* ── NEIGHBOURHOOD ─────────────────────────────────── */
+.ana-nb {
+  padding: 40px 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.nb-section { display: flex; flex-direction: column; gap: 16px; }
+.nb-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nb-rank { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
+.nb-bars { display: flex; flex-direction: column; gap: 10px; }
+.nb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nb-yours .nb-name { color: #4ADE80; }
+.nb-name {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.3);
+  min-width: 44px;
+}
+.nb-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.nb-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transform-origin: left;
+}
+.nb-num {
+  font-size: 0.68rem;
+  min-width: 32px;
+  text-align: right;
+}
+.ana-loading {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.1em;
+  animation: ana-blink 1s step-end infinite;
+}
+@keyframes ana-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+@media (max-width: 700px) {
+  .ana-hero { grid-template-columns: 1fr; }
+  .ana-hero-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .ana-plan-strip { grid-template-columns: 1fr; }
+}
+
+/* ── Neighbourhood skeleton ────────────────────────── */
+.nb-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nb-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nb-skeleton-label {
+  width: 44px; height: 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.07);
+  animation: skel-pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.nb-skeleton-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.07);
+  flex: 1;
+  animation: skel-pulse 1.4s ease-in-out infinite 0.1s;
+}
+.nb-skeleton-val {
+  width: 28px; height: 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.07);
+  animation: skel-pulse 1.4s ease-in-out infinite 0.2s;
+  flex-shrink: 0;
+}
+@keyframes skel-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}

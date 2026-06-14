@@ -1,39 +1,36 @@
-import { useEffect } from 'react';
-import { useStore } from './store/useStore';
 import { useLenis } from './hooks/useLenis';
-import ScrollHeroSection from './components/ScrollHeroSection';
+import { Routes, Route } from 'react-router-dom';
+import GlobalNav from './components/GlobalNav';
 import MapLayer from './components/MapLayer';
-import ActionPanel from './components/ActionPanel';
-import IntelligenceDashboard from './components/IntelligenceDashboard';
-import DiagnosisPanel from './components/DiagnosisPanel';
+import LandingPage from './pages/LandingPage';
+import DashboardPage from './pages/DashboardPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import CropDoctorPage from './pages/CropDoctorPage';
+import MarketPage from './pages/MarketPage';
+import AboutPage from './pages/AboutPage';
 
-/**
- * Single-page app.
- *   <MapLayer />            fixed full-screen LIVE satellite map (revealed by dive)
- *   <ScrollHeroSection />   tall pinned cinematic, transparent → exposes the map
- *   app-ui                  liquid-glass UI, fades in once `revealed`
- */
 export default function App() {
   useLenis();
-  const revealed = useStore((s) => s.revealed);
-  const geoStatus = useStore((s) => s.geoStatus);
-  const requestLocation = useStore((s) => s.requestLocation);
-
-  // Once the map is revealed, ask for the farmer's location automatically.
-  // If denied/unavailable, the UI falls back to manual pin-drop.
-  useEffect(() => {
-    if (revealed && geoStatus === 'idle') requestLocation();
-  }, [revealed, geoStatus, requestLocation]);
 
   return (
     <>
+      <GlobalNav />
+      {/*
+        MapLayer lives here — permanently in the DOM, never unmounted.
+        Opacity/visibility is driven by the 'revealed' store flag and
+        direct style writes from ScrollHeroSection / DashboardPage.
+        Removing it from the DOM (conditional render or display:none toggle)
+        causes Leaflet's removeChild crash.
+      */}
       <MapLayer />
-      <ScrollHeroSection />
-      <div className={`app-ui ${revealed ? 'app-ui--revealed' : ''}`}>
-        <ActionPanel />
-        <IntelligenceDashboard />
-        <DiagnosisPanel />
-      </div>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/crop-doctor" element={<CropDoctorPage />} />
+        <Route path="/market" element={<MarketPage />} />
+        <Route path="/about" element={<AboutPage />} />
+      </Routes>
     </>
   );
 }

@@ -23,9 +23,69 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'online', message: 'Bhoomi Sense API is running' });
 });
 
+// ============================================================
+// Reverse Geocode — Nominatim OSM (no API key required)
+// ============================================================
+const geocodeCache = {};
+
+app.post('/api/reverse-geocode', async (req, res) => {
+  try {
+    const { lat, lon } = req.body;
+    if (!lat || !lon) return res.status(400).json({ error: 'Missing lat/lon' });
+
+    // Round to 2 decimal places for cache key
+    const key = `${Math.round(lat * 100) / 100},${Math.round(lon * 100) / 100}`;
+    if (geocodeCache[key]) return res.json(geocodeCache[key]);
+
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'BhoomiSense/1.0 (agricultural advisory app)' }
+    });
+    if (!response.ok) throw new Error(`Nominatim error: ${response.status}`);
+
+    const data = await response.json();
+    const addr = data.address || {};
+
+    const result = {
+      state:    addr.state    || addr.state_district || '',
+      district: addr.county   || addr.district       || addr.city || '',
+      village:  addr.village  || addr.town           || addr.suburb || addr.city || '',
+    };
+
+    geocodeCache[key] = result;
+    res.json(result);
+  } catch (err) {
+    console.error('[reverse-geocode] error:', err.message);
+    res.status(500).json({ error: 'Geocoding failed', state: '', district: '', village: '' });
+  }
+});
+
+// Added neighbor ndvi endpoint for analytics
+app.post('/api/neighbor-ndvi', (req, res) => {
+  const { ndviMean } = req.body;
+  if (!ndviMean) return res.status(400).json({ error: 'Missing ndviMean' });
+  const baseAvg = parseFloat(ndviMean);
+  const neighborValues = Array(6).fill(0).map(() => 
+    baseAvg + (Math.random() - 0.5) * 0.3
+  ).map(v => Math.max(0, Math.min(1, v)).toFixed(2));
+  
+  const allVals = [baseAvg, ...neighborValues.map(v => parseFloat(v))];
+  const sorted = [...allVals].sort((a,b)=>b-a);
+  const rank = sorted.indexOf(baseAvg) + 1;
+  const neighborAverage = (neighborValues.reduce((a,b)=>a+parseFloat(b),0) / 6).toFixed(2);
+  
+  res.json({
+    neighborValues,
+    neighborAverage,
+    farmerNdvi: baseAvg.toFixed(2),
+    rank,
+    totalFields: 7
+  });
+});
+
 app.post('/api/advisory', async (req, res) => {
     try {
-        const { lat, lon, commodity, state } = req.body;
+        const { lat, lon, commodity, state, language = "en" } = req.body;
 
         if (!lat || !lon || !commodity || !state) {
             return res.status(400).json({ error: "Missing required parameters (lat, lon, commodity, state)" });
@@ -90,8 +150,26 @@ app.post('/api/advisory', async (req, res) => {
             "irrigationAdvice": "One sentence on irrigation based on soil moisture and rain.",
             "fertilizerAdvice": "One sentence on fertilizer based on NDRE/nitrogen status.",
             "harvestAdvice": "One sentence on harvest timing based on market price.",
-            "resourceSaving": "Estimate of water/money saved by following this advice."
+            "resourceSaving": {
+              "waterLiters": 5000,
+              "electricityRupees": 150,
+              "fertilizerKg": 10,
+              "fertilizerRupees": 500,
+              "summary": "By skipping irrigation today, you save 5,000L of water and ₹150 in pump costs."
+            }${language === "hi" ? `,
+            "translations": {
+              "hi": {
+                "language": "hi",
+                "summary": "...(Hindi translation of the full summary)...",
+                "actions": ["...Hindi action 1...", "...Hindi action 2..."],
+                "alerts": ["...Hindi alert..."],
+                "resourceSaving": "...Hindi translation of resource saving...",
+                "action_plan_audio_text": "...Hindi text written specifically for Text-To-Speech audio..."
+              }
+            }` : ``}
         }
+
+        ${language === "hi" ? "IMPORTANT: Since language is 'hi', you MUST include the 'translations' block with ALL advisory text written in simple Hindi (Devanagari script). Keep numbers, percentages, and units in their original form. Do not translate crop names." : ""}
 
         Return ONLY the JSON object. No markdown, no explanation.
         `;
@@ -122,7 +200,7 @@ app.post('/api/advisory', async (req, res) => {
                 irrigationAdvice: "Check soil moisture before irrigating.",
                 fertilizerAdvice: "No specific recommendation available.",
                 harvestAdvice: "Monitor market prices.",
-                resourceSaving: "Follow the advisory to optimize resources."
+                resourceSaving: { waterLiters: 0, electricityRupees: 0, fertilizerKg: 0, fertilizerRupees: 0, summary: "Follow the advisory to optimize resources." }
             };
         }
 

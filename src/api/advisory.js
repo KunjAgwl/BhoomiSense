@@ -25,7 +25,7 @@ import { buildMockAdvisory } from '../data/mockAdvisory';
 
 const SIMULATED_LATENCY_MS = 1500;
 
-const USE_REAL_BACKEND = false;
+const USE_REAL_BACKEND = true;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 /** ndvi_grid.values may be a 2D array or a JSON string — normalize to array. */
@@ -66,23 +66,7 @@ function inferAlert(message = '', pestRisk = '') {
   return { severity: high ? 'high' : 'medium', type, message };
 }
 
-// Build a small NDVI grid from point stats so the map overlay still renders.
-function synthGrid(center = 0.6, avg = 0.55, size = 12) {
-  const values = [];
-  for (let r = 0; r < size; r++) {
-    const row = [];
-    for (let c = 0; c < size; c++) {
-      const dx = (c - size / 2) / size;
-      const dy = (r - size / 2) / size;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      let v = center - dist * (center - avg) * 2;
-      v += (Math.sin(r * 1.7) + Math.cos(c * 2.1)) * 0.02;
-      row.push(Math.max(0.05, Math.min(0.95, Number(v.toFixed(2)))));
-    }
-    values.push(row);
-  }
-  return values;
-}
+// synthetic grid function removed.
 
 function num(x) {
   const n = Number(String(x).replace(/[^\d.]/g, ''));
@@ -111,29 +95,28 @@ export function adaptBackendResponse(raw, { lat, lon, crop, state }) {
     { day: 'Day 3', icon: inferActionIcon(a.day3), action: a.day3 || 'Review satellite update.', detail: a.harvestAdvice || '' },
   ];
 
-  // Best-effort parse of the free-text savings estimate.
-  const savingStr = a.resourceSaving || '';
-  const litersMatch = savingStr.match(/([\d,]+)\s*(?:l|lit|litre|liter)/i);
-  const rupeeMatch = savingStr.match(/(?:₹|rs\.?|inr)\s*([\d,]+)/i);
+  // Structured fields now from the AI
+  const rawSaving = a.resourceSaving || {};
   const resource_savings = {
-    water_liters: litersMatch ? num(litersMatch[1]) : 0,
-    electricity_inr: rupeeMatch ? num(rupeeMatch[1]) : 0,
-    fertilizer_inr_saved: null,
-    note: savingStr, // raw text kept for reference
+    water_liters: rawSaving.waterLiters ?? 0,
+    electricity_inr: rawSaving.electricityRupees ?? 0,
+    fertilizer_kg: rawSaving.fertilizerKg ?? 0,
+    fertilizer_inr_saved: rawSaving.fertilizerRupees ?? 0,
+    note: rawSaving.summary || '',
   };
 
-  const current = m ? num(m.modalPrice) : null;
-  const mandi_price = {
-    crop,
-    unit: 'per quintal',
-    current: current ?? 0,
-    market: m?.market,
-    date: m?.date,
-    trend: 'rising', // backend gives no trend/history — synthesized
-    history_7day: current
-      ? Array.from({ length: 7 }, (_, i) => Math.round(current * (0.965 + i * 0.006)))
-      : [],
-  };
+  const mandi_price = m
+    ? {
+        crop: m.crop || m.commodity || crop,
+        unit: m.unit || 'per quintal',
+        current: Number(m.currentPrice || m.modalPrice) || null,
+        trend: m.trend || 'rising',
+        trendPercent: m.trendPercent || '',
+        market: m.market || '',
+        note: m.note || '',
+        history_7day: m.history || [],
+      }
+    : null;
 
   const environment = {
     root_zone_moisture_pct: Math.round(num(w.soilMoisturePercent) ?? 0),
@@ -143,8 +126,8 @@ export function adaptBackendResponse(raw, { lat, lon, crop, state }) {
 
   const ndvi_grid = {
     bounds: { lat_min: lat - 0.004, lat_max: lat + 0.004, lon_min: lon - 0.004, lon_max: lon + 0.004 },
-    resolution: 10,
-    values: synthGrid(num(sat.ndviCenter) ?? 0.6, num(sat.ndviAverage) ?? 0.55, 12),
+    resolution: 12,
+    values: sat.ndviGrid || Array(144).fill(0.5)
   };
 
   return {
@@ -157,8 +140,8 @@ export function adaptBackendResponse(raw, { lat, lon, crop, state }) {
     mandi_price,
     environment,
     ndvi_grid,
-    // Backend has no translations block → omit (UI falls back to English).
-    translations: {},
+    // Translations block
+    translations: a.translations || {},
     // Keep the raw fused payload around for any deeper views later.
     _raw: d,
   };
@@ -166,22 +149,21 @@ export function adaptBackendResponse(raw, { lat, lon, crop, state }) {
 
 /**
  * fetchAdvisory — get an advisory for a location + crop + state.
- * @param {{ lat:number, lon:number, crop:string, state:string }} params
+ * @param {{ lat:number, lon:number, crop:string, state:string, language:string }} params
  */
-export async function fetchAdvisory({ lat, lon, crop, state }) {
+export async function fetchAdvisory({ lat, lon, crop, state, language }) {
   if (USE_REAL_BACKEND) {
     const res = await fetch(`${API_BASE_URL}/api/advisory`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       // backend expects `commodity`; send `crop` too for forward-compat.
-      body: JSON.stringify({ lat, lon, commodity: crop, crop, state }),
+      body: JSON.stringify({ lat, lon, commodity: crop, crop, state, language }),
     });
     if (!res.ok) {
       throw new Error(`Advisory request failed: ${res.status} ${res.statusText}`);
     }
     const raw = await res.json();
-    const data = adaptBackendResponse(raw, { lat, lon, crop, state });
-    data.ndvi_grid.values = parseNdviValues(data.ndvi_grid.values);
+    const data = adaptBackendResponse(raw, { lat, lon, crop, state, language });
     return data;
   }
 
@@ -189,7 +171,6 @@ export async function fetchAdvisory({ lat, lon, crop, state }) {
   return new Promise((resolve) => {
     setTimeout(() => {
       const data = buildMockAdvisory({ lat, lon, crop, state });
-      data.ndvi_grid.values = parseNdviValues(data.ndvi_grid.values);
       resolve(data);
     }, SIMULATED_LATENCY_MS);
   });

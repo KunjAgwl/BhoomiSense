@@ -1,0 +1,276 @@
+/* ============================================================
+   MARKET PAGE — financial intelligence terminal
+   ============================================================ */
+
+.market-page {
+  min-height: 100vh;
+  background: #030604;
+  color: #eaf2ea;
+  font-family: var(--font-body);
+  padding-top: 60px; /* nav */
+  padding-bottom: 60px;
+}
+
+/* ── ZONE 1: TICKER BAR ──────────────────────────────────── */
+.ticker-bar {
+  height: 44px;
+  background: rgba(74,222,128,0.06);
+  border-bottom: 1px solid rgba(74,222,128,0.15);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.ticker-inner {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 30s linear infinite;
+  white-space: nowrap;
+  align-items: center;
+}
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+}
+.ticker-crop  { font: 600 11px var(--font-mono); color: rgba(255,255,255,0.4); letter-spacing: 0.15em; }
+.ticker-price { font: 600 13px var(--font-mono); color: #E2EDE8; }
+.ticker-trend { font-size: 11px; font-family: var(--font-mono); }
+.ticker-trend.rising  { color: #4ADE80; }
+.ticker-trend.falling { color: #F43F5E; }
+.ticker-sep   { font-size: 10px; color: rgba(255,255,255,0.15); }
+
+/* ── BODY ────────────────────────────────────────────────── */
+.market-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── ZONE 2: CHART ARENA ─────────────────────────────────── */
+.chart-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crop-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.market-pill {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all 130ms ease;
+  white-space: nowrap;
+}
+.market-pill:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.market-pill.active { background: #4ADE80; color: #000; border-color: #4ADE80; font-weight: 700; }
+
+.arena-main {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.chart-col {
+  padding: 20px 16px 12px 0;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.chart-tooltip {
+  background: rgba(10,21,18,0.95);
+  border: 1px solid rgba(74,222,128,0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.ct-day  { font-size: 0.65rem; letter-spacing: 0.12em; color: rgba(255,255,255,0.45); margin-bottom: 2px; }
+.ct-price{ font: 700 0.9rem var(--font-mono); color: #eaf2ea; }
+
+/* Price stat col */
+.price-stat-col {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.stat-label {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 6px;
+}
+.price-hero {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+.price-market { font-size: 0.65rem; color: rgba(255,255,255,0.35); margin-top: 4px; }
+.price-divider { height: 1px; background: rgba(255,255,255,0.06); }
+
+.trend-display {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.trend-display.rising  { color: #4ADE80; }
+.trend-display.falling { color: #F43F5E; }
+.trend-arrow { font-size: 1.2rem; }
+.trend-pct   { font: 700 1.6rem var(--font-display); }
+.trend-abs   { font: 400 0.82rem var(--font-mono); opacity: 0.6; }
+
+.key-stats-row {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+.ks-item { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.ks-sep  { width: 1px; background: rgba(255,255,255,0.07); margin: 0 8px; }
+.ks-label{ font-size: 0.58rem; letter-spacing: 0.12em; color: rgba(255,255,255,0.25); }
+.ks-val  { font: 700 0.82rem var(--font-mono); color: #eaf2ea; }
+
+.signal-badge {
+  padding: 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid currentColor;
+}
+.signal-sell { color: #4ADE80; background: rgba(74,222,128,0.08); }
+.signal-hold { color: #F59E0B; background: rgba(245,158,11,0.08); }
+.signal-icon { font-size: 1.6rem; font-weight: 700; }
+.signal-text strong { display: block; font-size: 1rem; font-weight: 700; }
+.signal-text span   { font-size: 0.72rem; opacity: 0.7; }
+
+/* ── ZONE 3: INTEL ROW ───────────────────────────────────── */
+.intel-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.intel-card {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ic-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.25);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 8px;
+}
+
+/* Card A — Sell window */
+.sell-window-bar {
+  display: flex;
+  gap: 3px;
+  height: 40px;
+}
+.sell-day {
+  flex: 1;
+  border-radius: 4px;
+  transition: transform 150ms ease;
+}
+.sell-day:hover { transform: scaleY(1.15); }
+.day-good    { background: #4ADE80; opacity: 0.75; }
+.day-neutral { background: rgba(255,255,255,0.1); }
+.day-avoid   { background: #F43F5E; opacity: 0.5; }
+
+.sw-day-labels {
+  display: flex;
+  gap: 3px;
+}
+.sw-day-label {
+  flex: 1;
+  font-size: 0.52rem;
+  text-align: center;
+  color: rgba(255,255,255,0.25);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.sw-recommendation {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.4;
+}
+
+/* Card B — Profit calc */
+.profit-calc { display: flex; flex-direction: column; gap: 12px; }
+.calc-label  { font-size: 0.6rem; letter-spacing: 0.16em; color: rgba(255,255,255,0.25); padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.calc-inputs { display: flex; flex-direction: column; gap: 10px; }
+.calc-row    { display: flex; align-items: center; gap: 6px; }
+.calc-field-label { font-size: 0.68rem; color: rgba(255,255,255,0.35); min-width: 60px; }
+.calc-rupee  { font-size: 0.85rem; color: rgba(255,255,255,0.4); }
+.calc-input  {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  color: #eaf2ea;
+  font: 600 1rem var(--font-mono);
+  width: 72px;
+  text-align: right;
+  padding: 3px 4px;
+  outline: none;
+}
+.calc-input:focus { border-bottom-color: rgba(74,222,128,0.5); }
+.calc-unit   { font-size: 0.68rem; color: rgba(255,255,255,0.35); }
+.calc-divider{ height: 1px; background: rgba(255,255,255,0.08); }
+.calc-results{ display: flex; flex-direction: column; gap: 6px; }
+.calc-result-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.6);
+}
+.calc-result-row.dim { opacity: 0.5; }
+.result-label{ color: rgba(255,255,255,0.5); }
+.result-num  { font: 700 1.2rem var(--font-mono); transition: color 200ms ease; }
+@keyframes num-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+.result-num.pulse { animation: num-pulse 300ms ease; }
+
+/* Card C — Market signals */
+.market-signals { display: flex; flex-direction: column; }
+.market-signal {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.signal-bar { width: 3px; border-radius: 2px; flex-shrink: 0; }
+.ms-label { display: block; font-size: 0.6rem; letter-spacing: 0.12em; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
+.ms-val   { font-size: 0.78rem; font-weight: 700; }
+.ms-footer{ font-size: 0.6rem; color: rgba(255,255,255,0.2); margin-top: auto; }
+
+@media(max-width:900px){
+  .arena-main { grid-template-columns: 1fr; }
+  .intel-row  { grid-template-columns: 1fr; }
+  .price-stat-col { border-top: 1px solid rgba(255,255,255,0.05); }
+}
