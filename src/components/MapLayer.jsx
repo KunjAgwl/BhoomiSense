@@ -234,6 +234,21 @@ function NdviGrid({ grid, fieldPolygon }) {
   );
 }
 
+function ScrollEnabler() {
+  const map = useMap();
+  const revealed = useStore((s) => s.revealed);
+  useEffect(() => {
+    if (revealed) {
+      map.scrollWheelZoom.enable();
+      map.dragging.enable();
+    } else {
+      map.scrollWheelZoom.disable();
+      map.dragging.disable();
+    }
+  }, [map, revealed]);
+  return null;
+}
+
 export default function MapLayer() {
   const pinLocation    = useStore((s) => s.pinLocation);
   const fieldPolygon   = useStore((s) => s.fieldPolygon);
@@ -304,9 +319,12 @@ export default function MapLayer() {
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         zoomControl={false}
+        scrollWheelZoom={false}
+        dragging={false}
         className="map-container"
         worldCopyJump
       >
+        <ScrollEnabler />
         <TileLayer url={SAT_URL} attribution={SAT_ATTR} maxZoom={19} />
         <TileLayer url={LABELS_URL} maxZoom={19} opacity={0.85} />
         <DrawControl />

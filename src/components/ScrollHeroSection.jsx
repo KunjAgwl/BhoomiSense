@@ -6,15 +6,15 @@ import './ScrollHeroSection.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const STAGES = [
-  { id: 'bhoomi1', src: '/images/bhoomi1.png', label: 'SOIL',      alt: '0.3 m' },
-  { id: 'bhoomi2', src: '/images/bhoomi2.png', label: 'FIELD',     alt: '90 m' },
-  { id: 'bhoomi3', src: '/images/bhoomi3.png', label: 'FARMLAND',  alt: '6 km' },
-  { id: 'bhoomi4', src: '/images/bhoomi4.png', label: 'ORBIT',     alt: '320 km' },
-  { id: 'bhoomi5', src: '/images/bhoomi5.png', label: 'SATELLITE', alt: '35,786 km' },
-];
+/**
+ * ============================================================================
+ *  CINEMATIC VIDEO SCROLL EXPERIENCE
+ * ----------------------------------------------------------------------------
+ *  Scrub through video.mp4 as the user scrolls.
+ *  Phase C (Reveal): Fades out the video to reveal the interactive map.
+ * ============================================================================
+ */
 
-const SEQ_END  = 0.58;
 const HOLD_END = 0.72;
 
 // [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd] — all in scroll progress 0..1
@@ -41,42 +41,24 @@ function sceneOpacity(p, [i0, i1, o0, o1]) {
 }
 
 export default function ScrollHeroSection() {
-  const pinRef      = useRef(null);
-  const stickyRef   = useRef(null);
-  const layerRefs   = useRef([]);
+  const pinRef = useRef(null);
+  const stickyRef = useRef(null);
+  const videoRef = useRef(null);
   const heroTextRef = useRef(null);
-  const chevronRef  = useRef(null);
+  const chevronRef = useRef(null);
   const hudLabelRef = useRef(null);
-  const hudAltRef   = useRef(null);
   const railFillRef = useRef(null);
-  const textRefs    = useRef([]);
-  const [ready, setReady]       = useState(false);
+  const textRefs = useRef([]);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
+  
   const navigate = useNavigate();
-  const navigatedRef = useRef(false); // prevent double-fire
+  const navigatedRef = useRef(false);
 
+  // Initialize GSAP unconditionally so scrolling always works
   useEffect(() => {
-    let cancelled = false;
-    Promise.all(
-      STAGES.map(
-        (s) =>
-          new Promise((resolve) => {
-            const img = new Image();
-            img.onload = resolve;
-            img.onerror = resolve;
-            img.src = s.src;
-          })
-      )
-    ).then(() => !cancelled && setReady(true));
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    const layers = layerRefs.current.filter(Boolean);
-    if (layers.length !== STAGES.length) return;
+    const video = videoRef.current;
     const mapEl = document.querySelector('.map-layer');
-    const LAST  = STAGES.length - 1;
 
     // Ensure map starts hidden for the cinematic
     if (mapEl) {
@@ -85,58 +67,43 @@ export default function ScrollHeroSection() {
     }
 
     const render = (p) => {
-      if (p <= SEQ_END) {
-        const seqLocal = p / SEQ_END;
-        const raw = seqLocal * LAST;
-        const seg = Math.min(Math.floor(raw), LAST - 1);
-        const t   = smootherstep(raw - seg);
-        const breathe = 1 + seqLocal * 0.05;
-        layers.forEach((el, i) => {
-          let opacity = 0, scale = 1.18;
-          if (i === seg)          { opacity = 1 - t; scale = lerp(1, 1.14, t); }
-          else if (i === seg + 1) { opacity = t;     scale = lerp(1.18, 1, t); }
-          else if (i < seg)       { scale = 1.14; }
-          el.style.opacity   = opacity.toFixed(3);
-          el.style.transform = `scale(${(scale * breathe).toFixed(4)})`;
-        });
+      // 1. Scrub Video
+      if (video && video.readyState >= 1 && !isNaN(video.duration)) {
+        // Scrubbing the video based on scroll progress
+        video.currentTime = video.duration * p;
+      }
+
+      // 2. HUD Updates
+      if (p <= HOLD_END) {
         if (stickyRef.current) stickyRef.current.style.opacity = '1';
-        if (mapEl) { mapEl.style.opacity = '0'; mapEl.style.transform = 'scale(1.1)'; }
-        const stage = STAGES[Math.round(seqLocal * LAST)];
-        if (hudLabelRef.current) hudLabelRef.current.textContent = stage.label;
-        if (hudAltRef.current)   hudAltRef.current.textContent   = `ALT ${stage.alt}`;
-        if (railFillRef.current) railFillRef.current.style.transform = `scaleX(${seqLocal})`;
-      } else if (p <= HOLD_END) {
-        const hold = (p - SEQ_END) / (HOLD_END - SEQ_END);
-        layers.forEach((el, i) => {
-          if (i === LAST) { el.style.opacity = '1'; el.style.transform = `scale(${(1.04 + hold * 0.04).toFixed(4)})`; }
-          else             { el.style.opacity = '0'; }
-        });
-        if (stickyRef.current) stickyRef.current.style.opacity = '1';
-        if (mapEl) { mapEl.style.opacity = '0'; mapEl.style.transform = 'scale(1.1)'; }
-        if (hudLabelRef.current) hudLabelRef.current.textContent = 'ORBIT LOCKED';
-        if (hudAltRef.current)   hudAltRef.current.textContent   = 'TARGET BELOW';
-        if (railFillRef.current) railFillRef.current.style.transform = 'scaleX(1)';
+        if (video) video.style.opacity = '1';
+        if (mapEl) {
+          mapEl.style.opacity = '0';
+          mapEl.style.transform = 'scale(1.1)';
+        }
+        if (hudLabelRef.current) hudLabelRef.current.textContent = 'ANALYZING SURFACE';
+        if (railFillRef.current) railFillRef.current.style.transform = `scaleX(${p / HOLD_END})`;
       } else {
-        const rev  = (p - HOLD_END) / (1 - HOLD_END);
+        // Phase C: Reveal Map
+        const rev = (p - HOLD_END) / (1 - HOLD_END);
         const dive = smootherstep(rev);
-        layers.forEach((el, i) => { if (i !== LAST) el.style.opacity = '0'; });
-        layers[LAST].style.opacity   = (1 - smootherstep(clamp01(rev * 1.2))).toFixed(3);
-        layers[LAST].style.transform = `scale(${lerp(1.08, 1.85, dive).toFixed(4)})`;
+        
+        if (video) video.style.opacity = (1 - smootherstep(clamp01(rev * 1.5))).toFixed(3);
+
         if (stickyRef.current) {
           stickyRef.current.style.opacity = (1 - smootherstep(clamp01((rev - 0.1) / 0.9))).toFixed(3);
         }
         if (mapEl) {
-          mapEl.style.opacity   = clamp01(rev * 1.5).toFixed(3);
-          mapEl.style.transform = `scale(${lerp(1.1, 1, dive).toFixed(4)})`;
+          mapEl.style.opacity = clamp01(rev * 1.5).toFixed(3);
+          mapEl.style.transform = `scale(${(1.1 - 0.1 * dive).toFixed(4)})`;
         }
-        if (hudLabelRef.current) hudLabelRef.current.textContent = 'DESCENDING';
-        if (hudAltRef.current)   hudAltRef.current.textContent   = 'ACQUIRING IMAGERY';
+        if (hudLabelRef.current) hudLabelRef.current.textContent = 'TARGET ACQUIRED';
       }
 
       // Hero title: only during first 8%
       if (heroTextRef.current) {
         const tp = smootherstep(clamp01(p / 0.08));
-        heroTextRef.current.style.opacity   = (1 - tp).toFixed(3);
+        heroTextRef.current.style.opacity = (1 - tp).toFixed(3);
         heroTextRef.current.style.transform = `scale(${(1 + tp * 0.45).toFixed(3)})`;
       }
       if (chevronRef.current) {
@@ -159,9 +126,6 @@ export default function ScrollHeroSection() {
       });
     };
 
-    layers.forEach((el, i) =>
-      gsap.set(el, { opacity: i === 0 ? 1 : 0, scale: i === 0 ? 1 : 1.18 })
-    );
     render(0);
 
     const st = ScrollTrigger.create({
@@ -196,7 +160,7 @@ export default function ScrollHeroSection() {
       navigatedRef.current = false;
       if (mapEl) { mapEl.style.opacity = ''; mapEl.style.transform = ''; }
     };
-  }, [ready]);
+  }, [navigate]);
 
   const heroDone = progress > 0.995;
 
@@ -207,23 +171,25 @@ export default function ScrollHeroSection() {
       aria-label="Bhoomi Sense intro"
     >
       <div ref={stickyRef} className="zoom-sticky">
-        {STAGES.map((stage, i) => (
-          <div
-            key={stage.id}
-            ref={(el) => (layerRefs.current[i] = el)}
-            className={`zoom-layer zoom-layer-${i}`}
-            style={{ backgroundImage: `url(${stage.src})` }}
-          />
-        ))}
+        
+        <video 
+          ref={videoRef}
+          src="/video_optimized.mp4"
+          className="zoom-layer video-layer"
+          preload="auto"
+          muted
+          playsInline
+          onLoadedMetadata={() => setVideoLoaded(true)}
+          style={{ objectFit: 'cover', width: '100%', height: '100%', position: 'absolute' }}
+        />
 
         <div className="zoom-grade-overlay" />
         <div className="zoom-vignette" />
 
         <div className="zoom-hud liquid" aria-hidden="true">
           <span className="zoom-hud__dot" />
-          <span ref={hudLabelRef} className="zoom-hud__label mono">SOIL</span>
+          <span ref={hudLabelRef} className="zoom-hud__label mono">INITIALIZING</span>
           <span className="zoom-hud__sep" />
-          <span ref={hudAltRef}   className="zoom-hud__alt mono">ALT 0.3 m</span>
           <span className="zoom-hud__rail">
             <span ref={railFillRef} className="zoom-hud__rail-fill" />
           </span>
@@ -282,7 +248,7 @@ export default function ScrollHeroSection() {
           </svg>
         </div>
 
-        {!ready && (
+        {!videoLoaded && (
           <div className="zoom-loading">
             <div className="brutal-spinner" />
             <span className="mono">LOADING ORBIT…</span>
